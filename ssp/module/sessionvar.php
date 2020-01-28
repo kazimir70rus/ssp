@@ -6,10 +6,9 @@ Class SessionVar
 {
     private $name;
 
-    function __construct($name, $value)
+    function __construct($uid, $name)
     {
-        $this->name = $name;
-        $this->setValue($value);
+        $this->name = $uid . '_' . $name;
     }
 
     function setValue($value)

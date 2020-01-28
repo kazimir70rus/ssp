@@ -2,8 +2,8 @@
 
 require_once 'module/autoload.php';
 
-define('UUID', 'ssp');
-define('BASE_URL', '/' . UUID . '/');
+define('UID', 'ssp');
+define('BASE_URL', '/' . UID . '/');
 
 $config =
 [
@@ -27,6 +27,12 @@ if (isset($param[0])) {
     $action = $param[0];
 } else {
     $action = 'index';
+}
+
+$id_user = new \ssp\module\SessionVar(UID, 'id_user');
+
+if (!$id_user->getValue()) {
+    $action = 'login';
 }
 
 $fullname = "controllers/" . $action . ".php";
