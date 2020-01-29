@@ -34,8 +34,8 @@ Class SessionVar
             unset($_SESSION[$this->name]);
 
             return $value;
-        } 
-        
+        }
+
         return null;
     }
 }
