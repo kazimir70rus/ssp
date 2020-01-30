@@ -8,7 +8,6 @@
 <body>
 
 <?php require_once 'logout.html'; ?>
-<!--<h1>ok</h1>-->
 
     <a href="<?=BASE_URL?>add_task">Создать задачу</a>
 
