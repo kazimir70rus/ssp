@@ -9,10 +9,10 @@
 
 <?php require_once 'logout.html'; ?>
 
-	<form>
+    <form>
         <input type="text" name="task">
         <input type="submit" name="submit" value="Добавить">
     </form>
-	
+
 </body>
 </html>

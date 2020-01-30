@@ -4,26 +4,21 @@ if (isset($_POST['submit'])) {
     $login = htmlspecialchars($_POST['login']);
     $pass = htmlspecialchars($_POST['pass']);
 
-	$db = new \ssp\models\Db($config);
-	
-	$user = new \ssp\models\User($db);
+    $db = new \ssp\models\Db($config);
 
-	$result = $user->check($login, $pass);
+    $user = new \ssp\models\User($db);
 
-	if (is_array($result)) {
+    $result = $user->check($login, $pass);
 
-		$id_user = new \ssp\module\SessionVar(UID, 'id_user');
-    	$id_user->setValue($result['id_user']);
+    if (is_array($result)) {
 
-    	$name_user->setValue($login);
+    $id_user = new \ssp\module\SessionVar(UID, 'id_user');
+        $id_user->setValue($result['id_user']);
+        $name_user->setValue($login);
 
-	    header('Location: ' . BASE_URL);
-    	exit();
-
-	}
-	
-
+        header('Location: ' . BASE_URL);
+        exit();
+    }
 }
 
 require_once 'views/login.php';
-

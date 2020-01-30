@@ -23,12 +23,12 @@ Class User
                     ->getRow($query, ['id_user' => $this->id_user]);
     }
 
-	function check($login, $pass)
-	{
-		$query ='select id_user from users where name = :login and pass = password(:pass)';
-			
-		return $this
-					->db
-					->getRow($query, ['login' => $login, 'pass' => $pass]);
-	}
+    function check($login, $pass)
+    {
+        $query ='select id_user from users where name = :login and pass = password(:pass)';
+
+        return $this
+                    ->db
+                    ->getRow($query, ['login' => $login, 'pass' => $pass]);
+    }
 }
