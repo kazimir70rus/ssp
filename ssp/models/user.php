@@ -31,4 +31,14 @@ Class User
                     ->db
                     ->getRow($query, ['login' => $login, 'pass' => $pass]);
     }
+
+    function getList()
+    {
+        $query ='select id_user, name from users order by name';
+
+        return $this
+                    ->db
+                    ->getList($query);
+    }
+
 }

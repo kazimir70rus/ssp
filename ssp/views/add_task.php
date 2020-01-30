@@ -9,8 +9,20 @@
 
 <?php require_once 'logout.html'; ?>
 
-    <form>
+    <form method="post">
         <input type="text" name="task">
+
+        <select name="executor">
+            <?php
+                foreach ($list_users as $user) {
+
+                    echo '<option value="' . $user['id_user'] . '">';
+                    echo $user["name"];
+                    echo '</option>';
+                }
+
+             ?>
+        </select>
         <input type="submit" name="submit" value="Добавить">
     </form>
 
