@@ -24,6 +24,7 @@
              ?>
         </select>
         <input type="submit" name="submit" value="Добавить">
+
     </form>
 
 </body>
