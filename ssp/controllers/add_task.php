@@ -10,7 +10,7 @@ if (isset($_POST['submit'])) {
     $data_beg = $_POST['data_beg'];
     $data_end = $_POST['data_end'];
     
-        if(!empty($name)) {
+        if(!empty($name) and !empty($data_beg) and !empty($data_end)) {
             $result = $task->add($executor, $name, $id_user->getValue(), $data_beg, $data_end);
             header('Location: ' . BASE_URL);
         } else {
