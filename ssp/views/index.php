@@ -8,8 +8,21 @@
 <body>
 
 <?php require_once 'logout.html'; ?>
+    <br>
 
     <a href="<?=BASE_URL?>add_task">Создать задачу</a>
+    
+    <br>
+    <p>Список задачь</p>
 
+   <?php
+        foreach ($list_tasks as $one_task) {
+            echo '<div>';
+            echo $one_task['name'];
+            echo '</div>';
+        }
+
+     ?>    
+    
 </body>
 </html>

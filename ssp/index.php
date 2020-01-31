@@ -31,6 +31,9 @@ if (isset($param[0])) {
 
 $id_user = new \ssp\module\SessionVar(UID, 'id_user');
 $name_user = new \ssp\module\SessionVar(UID, 'name_user');
+$position_user = new \ssp\module\SessionVar(UID, 'position_user');
+
+$db = new \ssp\models\Db($config);
 
 if (!$id_user->getValue()) {
     $action = 'login';

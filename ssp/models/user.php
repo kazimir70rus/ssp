@@ -8,24 +8,25 @@ Class User
 
     private $id_user;
 
-    function __construct($db, $id_user = 0)
+    function __construct($db, $id_user = 0, $position = '')
     {
         $this->db = $db;
         $this->id_user = $id_user;
+        $this->position = $position;
     }
 
-    function getInfo()
+    function getInfo($id_user)
     {
         $query = 'select name from users where id_user = :id_user';
 
         return $this
                     ->db
-                    ->getRow($query, ['id_user' => $this->id_user]);
+                    ->getRow($query, ['id_user' => $id_user]);
     }
 
     function check($login, $pass)
     {
-        $query ='select id_user from users where name = :login and pass = password(:pass)';
+        $query ='select id_user, position from users where name = :login and pass = password(:pass)';
 
         return $this
                     ->db

@@ -10,7 +10,7 @@
     <form method="post">
         <input type="text" name="login">
         <input type="password" name="pass">
-        <input type="submit" name="submit" value="вход">
+        <input type="submit" name="submit" value="Вход">
     </form>
 
 </body>

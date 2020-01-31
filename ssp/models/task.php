@@ -20,4 +20,13 @@ Class Task
                     ->insertData($query, ['id_executor' => $executor, 'name' => $task, 'author' => $id_author]);
     }
 
+    function getList($id_executor)
+    {
+        $query = 'select id_task, name, id_author from tasks where id_executor = :id_executor';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_executor' => $id_executor]);
+    }
+
 }

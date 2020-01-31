@@ -1,7 +1,5 @@
 <?php
 
-$db = new \ssp\models\Db($config);
-
 $user = new \ssp\models\User($db);
 
 if (isset($_POST['submit'])) {
