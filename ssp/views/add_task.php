@@ -10,8 +10,10 @@
 <?php require_once 'logout.html'; ?>
 
     <form method="post">
+        Задание:
         <input type="text" name="task">
-
+        <br>
+        Ответственный:
         <select name="executor">
             <?php
                 foreach ($list_users as $user) {
@@ -20,9 +22,15 @@
                     echo $user["name"];
                     echo '</option>';
                 }
-
              ?>
         </select>
+        <br>
+        Дата начало:
+        <input type="date" name="data_beg">
+        <br>
+        Срок исполнения:
+        <input type="date" name="data_end">
+        <br>
         <input type="submit" name="submit" value="Добавить">
 
     </form>

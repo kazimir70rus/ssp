@@ -7,13 +7,14 @@ if (isset($_POST['submit'])) {
     $name = htmlspecialchars($_POST['task']);
     $executor = (int)$_POST['executor'];
     $task = new \ssp\models\Task($db);
-
+    $data_beg = $_POST['data_beg'];
+    $data_end = $_POST['data_end'];
+    
         if(!empty($name)) {
-            $result = $task->add($executor, $name, $id_user->getValue());
-            
+            $result = $task->add($executor, $name, $id_user->getValue(), $data_beg, $data_end);
             header('Location: ' . BASE_URL);
         } else {
-            echo 'нет информации для сохранения';
+            echo '<p style="color: red"> нет информации для сохранения </p>';
         }
 }
 

@@ -37,33 +37,23 @@
     <br>    
     <p><b>Список задач на контроле:</b></p>
 
-<!-- убрал пока.... потом мне Саша скажет, как лучше )
-    <?php
-        foreach ($author_tasks as $one_task) {
-            echo '<div>';
-            echo $one_task['name'];
-            echo '</div>';
+    <table border="0">
+        <tr>
+            <th>Сделать</th>
+            <th>Исполнитель</th>
+            <th>Дата исполнения</th>
+        </tr>
+
+        <?php
+            foreach ($author_tasks as $one_task) {
+                echo '<tr>';
+                echo '<td>', $one_task['name'], '</td>';
+                echo '<td>', $one_task['fio_executor'], '</td>';
+                echo '<td>', $one_task['data_end'], '</td>';
+                echo '</tr>';
         }
-    ?>
--->
-
-<table border="0">
-    <tr>
-        <th>Сделать</th>
-        <th>Исполнитель</th>
-        <th>Дата исполнения</th>
-    </tr>
-
-    <?php
-        foreach ($author_tasks as $one_task) {
-            echo '<tr>';
-            echo '<td>', $one_task['name'], '</td>';
-            echo '<td>', $one_task['fio_executor'], '</td>';
-            echo '<td>', $one_task['data_end'], '</td>';
-            echo '</tr>';
-    }
-    ?>
-</table>
+        ?>
+    </table>
  
 </body>
 </html>

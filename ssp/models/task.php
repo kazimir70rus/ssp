@@ -11,13 +11,13 @@ Class Task
         $this->db = $db;
     }
 
-    function add($executor, $task, $id_author)
+    function add($executor, $task, $id_author, $data_beg, $data_end)
     {
-        $query = 'insert into tasks (id_executor, name, id_author) values(:id_executor, :name, :author)';
+        $query = 'insert into tasks (id_executor, name, id_author, data_begin, data_end) values(:id_executor, :name, :author, :data_begin, :data_end)';
 
         return $this
                     ->db
-                    ->insertData($query, ['id_executor' => $executor, 'name' => $task, 'author' => $id_author]);
+                    ->insertData($query, ['id_executor' => $executor, 'name' => $task, 'author' => $id_author, 'data_begin' => $data_beg, 'data_end' => $data_end]);
     }
 
     function getList($id_executor)
@@ -31,8 +31,6 @@ Class Task
 
     function getListAuthorTasks($id_author)
     {
-//        $query = 'select id_task, name, id_author from tasks where id_author = :id_author';
-
         $query = 'select tasks.id_task, tasks.name, users.name as fio_executor, tasks.data_end from tasks, users
                     where tasks.id_executor=users.id_user and tasks.id_author = :id_author
                     order by tasks.data_end';
