@@ -29,4 +29,12 @@ Class Task
                     ->getList($query, ['id_executor' => $id_executor]);
     }
 
+    function getListAuthorTasks($id_author)
+    {
+        $query = 'select id_task, name, id_author from tasks where id_author = :id_author';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_author' => $id_author]);
+    }
 }
