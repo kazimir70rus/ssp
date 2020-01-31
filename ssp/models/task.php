@@ -31,8 +31,12 @@ Class Task
 
     function getListAuthorTasks($id_author)
     {
-        $query = 'select id_task, name, id_author from tasks where id_author = :id_author';
+//        $query = 'select id_task, name, id_author from tasks where id_author = :id_author';
 
+        $query = 'select tasks.id_task, tasks.name, users.name as fio_executor, tasks.data_end from tasks, users
+                    where tasks.id_executor=users.id_user and tasks.id_author = :id_author
+                    order by tasks.data_end';
+        
         return $this
                     ->db
                     ->getList($query, ['id_author' => $id_author]);

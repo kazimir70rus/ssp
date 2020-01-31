@@ -4,6 +4,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link href="<?=BASE_URL?>css/main.css" rel="stylesheet" type="text/css">
+
+    <!--    убрал, так как все это от лукавого
+<style>
+    table {
+        width: 100%; /* Ширина таблицы */
+    }
+    th {
+        background: maroon; /* Цвет фона ячеек */
+        color: white; /* Цвет текста */
+    }
+    
+    </style>    
+ --> 
 </head>
 <body>
 
@@ -13,7 +26,7 @@
     <a href="<?=BASE_URL?>add_task">Создать задачу</a>
     
     <br>
-    <p>Список задач к исполнению:</p>
+    <p><b>Список задач к исполнению:</b></p>
    <?php
         foreach ($list_tasks as $one_task) {
             echo '<div>';
@@ -21,8 +34,10 @@
             echo '</div>';
         }
      ?>    
-    <br>
-    <p>Список задач на контроле:</p>
+    <br>    
+    <p><b>Список задач на контроле:</b></p>
+
+<!-- убрал пока.... потом мне Саша скажет, как лучше )
     <?php
         foreach ($author_tasks as $one_task) {
             echo '<div>';
@@ -30,6 +45,25 @@
             echo '</div>';
         }
     ?>
-     
+-->
+
+<table border="0">
+    <tr>
+        <th>Сделать</th>
+        <th>Исполнитель</th>
+        <th>Дата исполнения</th>
+    </tr>
+
+    <?php
+        foreach ($author_tasks as $one_task) {
+            echo '<tr>';
+            echo '<td>', $one_task['name'], '</td>';
+            echo '<td>', $one_task['fio_executor'], '</td>';
+            echo '<td>', $one_task['data_end'], '</td>';
+            echo '</tr>';
+    }
+    ?>
+</table>
+ 
 </body>
 </html>
