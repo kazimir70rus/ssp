@@ -9,10 +9,11 @@ if (isset($_POST['submit'])) {
     $task = new \ssp\models\Task($db);
     $data_beg = $_POST['data_beg'];
     $data_end = $_POST['data_end'];
-    
+
         if(!empty($name) and !empty($data_beg) and !empty($data_end)) {
             $result = $task->add($executor, $name, $id_user->getValue(), $data_beg, $data_end);
             header('Location: ' . BASE_URL);
+            exit();
         } else {
             echo '<p style="color: red"> нет информации для сохранения </p>';
         }

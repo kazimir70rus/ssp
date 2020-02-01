@@ -11,10 +11,11 @@
 
     <form method="post">
         Задание:
-        <input type="text" name="task">
+        <input type="text" name="task" required>
         <br>
         Ответственный:
-        <select name="executor">
+        <select name="executor" required>
+            <option value="">выберете ответственного</option>
             <?php
                 foreach ($list_users as $user) {
 
@@ -26,10 +27,10 @@
         </select>
         <br>
         Дата начало:
-        <input type="date" name="data_beg">
+        <input type="date" name="data_beg" required>
         <br>
         Срок исполнения:
-        <input type="date" name="data_end">
+        <input type="date" name="data_end" required>
         <br>
         <input type="submit" name="submit" value="Добавить">
 
