@@ -7,7 +7,7 @@ define('BASE_URL', '/' . UID . '/');
 
 $config =
 [
-    'srv'  => 'localhost',
+    'srv'  => '192.168.30.223',
     'user' => '046327307_tasker',
     'pass' => '01478569',
     'db'   => 'msfm_tasker',
@@ -30,6 +30,10 @@ if (isset($param[0])) {
 }
 
 $id_user = new \ssp\module\SessionVar(UID, 'id_user');
+$name_user = new \ssp\module\SessionVar(UID, 'name_user');
+$position_user = new \ssp\module\SessionVar(UID, 'position_user');
+
+$db = new \ssp\models\Db($config);
 
 if (!$id_user->getValue()) {
     $action = 'login';
@@ -42,4 +46,3 @@ if (file_exists($fullname)) {
 } else {
     require_once 'views/404.html';
 }
-
