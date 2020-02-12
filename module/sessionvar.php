@@ -5,10 +5,11 @@ namespace ssp\module;
 Class SessionVar
 {
     private $name;
+    const UID = UID;
 
-    function __construct($uid, $name)
+    function __construct($name)
     {
-        $this->name = $uid . '_' . $name;
+        $this->name = self::UID . '_' . $name;
     }
 
     function setValue($value)

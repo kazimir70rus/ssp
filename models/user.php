@@ -8,11 +8,17 @@ Class User
 
     private $id_user;
 
+    public $name;
+
     function __construct($db, $id_user = 0, $position = '')
     {
         $this->db = $db;
-        $this->id_user = $id_user;
-        $this->position = $position;
+
+        if ($id_user) {
+            $this->id_user = $id_user;
+            $result = $this->getInfo($id_user);
+            $this->$name = $result['name'];
+        }
     }
 
     function getInfo($id_user)

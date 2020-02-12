@@ -29,9 +29,9 @@ if (isset($param[0])) {
     $action = 'index';
 }
 
-$id_user = new \ssp\module\SessionVar(UID, 'id_user');
-$name_user = new \ssp\module\SessionVar(UID, 'name_user');
-$position_user = new \ssp\module\SessionVar(UID, 'position_user');
+$id_user = new \ssp\module\SessionVar('id_user');
+$name_user = new \ssp\module\SessionVar('name_user');
+$position_user = new \ssp\module\SessionVar('position_user');
 
 $db = new \ssp\models\Db($config);
 
