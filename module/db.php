@@ -1,6 +1,6 @@
 <?php
 
-namespace ssp\models;
+namespace ssp\module;
 
 Class Db
 {

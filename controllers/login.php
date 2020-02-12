@@ -10,7 +10,7 @@ if (isset($_POST['submit'])) {
 
     if (is_array($result)) {
 
-    $id_user = new \ssp\module\SessionVar(UID, 'id_user');
+    $id_user = new \ssp\module\SessionVar('id_user');
         $id_user->setValue($result['id_user']);
         $name_user->setValue($login);
         $position_user->setValue($result['position']);

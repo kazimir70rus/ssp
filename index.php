@@ -33,7 +33,7 @@ $id_user = new \ssp\module\SessionVar('id_user');
 $name_user = new \ssp\module\SessionVar('name_user');
 $position_user = new \ssp\module\SessionVar('position_user');
 
-$db = new \ssp\models\Db($config);
+$db = new \ssp\module\Db($config);
 
 if (!$id_user->getValue()) {
     $action = 'login';
