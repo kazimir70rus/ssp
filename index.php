@@ -3,7 +3,7 @@
 require_once 'module/autoload.php';
 
 define('UID', 'ssp');
-define('BASE_URL', '/' . UID . '/');
+define('BASE_URL', '/ssp/');
 
 $config =
 [
