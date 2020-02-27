@@ -31,6 +31,16 @@ Class Task
                                          ]);
     }
 
+    function getListTip($id_user, $tip)
+    {
+        $query = 'select id_task, name, data_end from tasks where ' . $tip . ' = :id_user order by data_end desc';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_user' => $id_user]);
+    }
+
+
     function getList($id_executor)
     {
         $query = 'select id_task, name, id_author from tasks where id_executor = :id_executor';

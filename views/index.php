@@ -20,6 +20,7 @@
     }
     .item {
         width: 49%;
+        padding: 1rem;
     }
 
     @media screen and (max-width: 500px) {
@@ -41,56 +42,59 @@
     <br>
 
     <a href="<?=BASE_URL?>add_task">Создать задачу</a>
-    
-    <br>
+
+    <br>    
+    <br>    
     
     <div class="container">
         <div class="item" style="border: 1px solid red">
-        12
+            <div><b>Список задач (Исполнитель):</b></div>
+            <?php
+                foreach ($list_tasks_executor as $one_task) {
+                    echo '<div>';
+                    echo $one_task['data_end'];                    
+                    echo $one_task['name'];
+                    echo '</div>';
+                }
+            ?>    
         </div>
         <div class="item" style="border: 1px solid green">
-        12
+            <div><b>Список задач (Инициатор):</b></div>
+            <?php
+                foreach ($list_tasks_iniciator as $one_task) {
+                    echo '<div>';
+                    echo $one_task['data_end'];                    
+                    echo $one_task['name'];
+                    echo '</div>';
+                }
+            ?>    
         </div>
     </div>
 
     <div class="container">
         <div class="item" style="border: 1px solid blue">
-        12
+            <div><b>Список задач (Потребитель):</b></div>
+            <?php
+                foreach ($list_tasks_client as $one_task) {
+                    echo '<div>';
+                    echo $one_task['data_end'];                    
+                    echo $one_task['name'];
+                    echo '</div>';
+                }
+            ?>    
         </div>
         <div class="item" style="border: 1px solid black">
-        12
+            <div><b>Список задач (Котролер):</b></div>
+            <?php
+                foreach ($list_tasks_controller as $one_task) {
+                    echo '<div>';
+                    echo $one_task['data_end'];                    
+                    echo $one_task['name'];
+                    echo '</div>';
+                }
+            ?>    
         </div>
     </div>
-    
-    <p><b>Список задач к исполнению:</b></p>
-   <?php
-        foreach ($list_tasks as $one_task) {
-            echo '<div>';
-            echo $one_task['name'];
-            echo '</div>';
-        }
-     ?>    
-    <br>    
-    <p><b>Список задач на контроле:</b></p>
-
-    <table border="0">
-        <tr>
-            <th>Дата исполнения</th>
-            <th>Задание</th>
-            <th>Результат</th>
-        </tr>
-
-        <?php
-            $i = 0;
-            foreach ($author_tasks as $one_task) {
-                echo '<tr>';
-                echo '<td>', $one_task['data_end'], '</td>';
-                echo '<td>', $one_task['name'], '</td>';
-                echo '<td></td>';
-                echo '</tr>';
-        }
-        ?>
-    </table>
- 
+     
 </body>
 </html>
