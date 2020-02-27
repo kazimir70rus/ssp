@@ -11,13 +11,24 @@ Class Task
         $this->db = $db;
     }
 
-    function add($executor, $task, $id_author, $data_beg, $data_end)
+    function add($id_users, $task, $id_author, $data_beg, $data_end)
     {
-        $query = 'insert into tasks (id_executor, name, id_author, data_begin, data_end) values(:id_executor, :name, :author, :data_begin, :data_end)';
+        $query = 'insert into tasks
+            (id_executor, id_iniciator, id_client, id_controller, name, id_author, data_begin, data_end)
+            values(:id_executor, :id_iniciator, :id_client, :id_controller, :name, :author, :data_begin, :data_end)';
 
         return $this
                     ->db
-                    ->insertData($query, ['id_executor' => $executor, 'name' => $task, 'author' => $id_author, 'data_begin' => $data_beg, 'data_end' => $data_end]);
+                    ->insertData($query, [
+                                            'id_executor'   => $id_users['executor'],
+                                            'id_iniciator'  => $id_users['iniciator'],
+                                            'id_client'     => $id_users['client'],
+                                            'id_controller' => $id_users['controller'],
+                                            'name'          => $task,
+                                            'author'        => $id_author,
+                                            'data_begin'    => $data_beg,
+                                            'data_end'      => $data_end,
+                                         ]);
     }
 
     function getList($id_executor)

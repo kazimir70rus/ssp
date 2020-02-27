@@ -13,9 +13,48 @@
         Задание:
         <input type="text" name="task" required>
         <br>
-        Ответственный:
+        Инициатор:
+        <select name="iniciator" required>
+            <option value="">выберете инициатора</option>
+            <?php
+                foreach ($list_users as $user) {
+
+                    echo '<option value="' . $user['id_user'] . '">';
+                    echo $user["name"];
+                    echo '</option>';
+                }
+             ?>
+        </select>
+        <br>
+        Потребитель:
+        <select name="client" required>
+            <option value="">выберете потребителя</option>
+            <?php
+                foreach ($list_users as $user) {
+
+                    echo '<option value="' . $user['id_user'] . '">';
+                    echo $user["name"];
+                    echo '</option>';
+                }
+             ?>
+        </select>
+        <br>
+        Исполнитель:
         <select name="executor" required>
-            <option value="">выберете ответственного</option>
+            <option value="">выберете испольнителя</option>
+            <?php
+                foreach ($list_users as $user) {
+
+                    echo '<option value="' . $user['id_user'] . '">';
+                    echo $user["name"];
+                    echo '</option>';
+                }
+             ?>
+        </select>
+        <br>
+        Контролер:
+        <select name="controller" required>
+            <option value="">выберете контролера</option>
             <?php
                 foreach ($list_users as $user) {
 
