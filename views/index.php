@@ -48,7 +48,7 @@
     
     <div class="container">
         <div class="item" style="border: 1px solid red">
-            <div><b>Список задач (Исполнитель):</b></div>
+            <div><b>Список задач (<a href="<?=BASE_URL?>executor/<?=$id_user->getValue()?>">Исполнитель</a>):</b></div>
             <?php
                 foreach ($list_tasks_executor as $one_task) {
                     echo '<div>';
@@ -59,7 +59,7 @@
             ?>    
         </div>
         <div class="item" style="border: 1px solid green">
-            <div><b>Список задач (Инициатор):</b></div>
+            <div><b>Список задач (<a href="<?=BASE_URL?>iniciator/<?=$id_user->getValue()?>">Инициатор</a>):</b></div>
             <?php
                 foreach ($list_tasks_iniciator as $one_task) {
                     echo '<div>';
@@ -73,7 +73,7 @@
 
     <div class="container">
         <div class="item" style="border: 1px solid blue">
-            <div><b>Список задач (Потребитель):</b></div>
+            <div><b>Список задач (<a href="<?=BASE_URL?>client/<?=$id_user->getValue()?>">Потребитель</a>):</b></div>
             <?php
                 foreach ($list_tasks_client as $one_task) {
                     echo '<div>';
@@ -84,7 +84,7 @@
             ?>    
         </div>
         <div class="item" style="border: 1px solid black">
-            <div><b>Список задач (Котролер):</b></div>
+            <div><b>Список задач (<a href="<?=BASE_URL?>controller/<?=$id_user->getValue()?>">Котролер</a>):</b></div>
             <?php
                 foreach ($list_tasks_controller as $one_task) {
                     echo '<div>';

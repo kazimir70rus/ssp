@@ -31,9 +31,9 @@ Class Task
                                          ]);
     }
 
-    function getListTip($id_user, $tip)
+    function getListTip($id_user, $tip, $limit = 10)
     {
-        $query = 'select id_task, name, data_end from tasks where ' . $tip . ' = :id_user order by data_end desc';
+        $query = 'select id_task, name, data_end from tasks where ' . $tip . ' = :id_user order by data_end desc limit ' . $limit;
 
         return $this
                     ->db
