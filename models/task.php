@@ -60,4 +60,35 @@ Class Task
                     ->db
                     ->getList($query, ['id_author' => $id_author]);
     }
+
+    function getInfo($id_task)
+    {
+        $query = 'select
+                        data_end,
+                        data_begin,
+                        id_task,
+                        tasks.name as task_name,
+                        executor.name as executor,
+                        iniciator.name as iniciator,
+                        client.name as client,
+                        controller.name as controller,
+                        data_execut,
+                        data_client,
+                        if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet
+                    from
+                        tasks
+                        join users as iniciator on iniciator.id_user = id_iniciator
+                        join users as client on client.id_user = id_client
+                        join users as executor on executor.id_user = id_executor
+                        join users as controller on controller.id_user = id_controller
+                    where
+                        id_task = :id_task
+                    order by
+                        data_end desc';
+
+        return $this
+                    ->db
+                    ->getRow($query, ['id_task' => $id_task]);
+    }
+
 }

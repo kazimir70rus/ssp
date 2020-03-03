@@ -38,7 +38,20 @@
 </head>
 <body>
 
-<?php require_once 'logout.html'; ?>
+<?php require_once 'logout.html';
+
+function task_out($tasks)
+{
+    foreach ($tasks as $task) {
+        echo '<div><a href="' . BASE_URL . 'task/' . $task['id_task'] . '">';
+        echo $task['data_end'];                    
+        echo $task['name'];
+        echo '</a></div>';
+    }
+}
+
+
+ ?>
     <br>
 
     <a href="<?=BASE_URL?>add_task">Создать задачу</a>
@@ -50,23 +63,13 @@
         <div class="item" style="border: 1px solid red">
             <div><b>Список задач (<a href="<?=BASE_URL?>executor/<?=$id_user->getValue()?>">Исполнитель</a>):</b></div>
             <?php
-                foreach ($list_tasks_executor as $one_task) {
-                    echo '<div>';
-                    echo $one_task['data_end'];                    
-                    echo $one_task['name'];
-                    echo '</div>';
-                }
+                task_out($list_tasks_executor);
             ?>    
         </div>
         <div class="item" style="border: 1px solid green">
             <div><b>Список задач (<a href="<?=BASE_URL?>iniciator/<?=$id_user->getValue()?>">Инициатор</a>):</b></div>
             <?php
-                foreach ($list_tasks_iniciator as $one_task) {
-                    echo '<div>';
-                    echo $one_task['data_end'];                    
-                    echo $one_task['name'];
-                    echo '</div>';
-                }
+                task_out($list_tasks_iniciator);
             ?>    
         </div>
     </div>
@@ -75,23 +78,13 @@
         <div class="item" style="border: 1px solid blue">
             <div><b>Список задач (<a href="<?=BASE_URL?>client/<?=$id_user->getValue()?>">Потребитель</a>):</b></div>
             <?php
-                foreach ($list_tasks_client as $one_task) {
-                    echo '<div>';
-                    echo $one_task['data_end'];                    
-                    echo $one_task['name'];
-                    echo '</div>';
-                }
+                task_out($list_tasks_client);
             ?>    
         </div>
         <div class="item" style="border: 1px solid black">
             <div><b>Список задач (<a href="<?=BASE_URL?>controller/<?=$id_user->getValue()?>">Котролер</a>):</b></div>
             <?php
-                foreach ($list_tasks_controller as $one_task) {
-                    echo '<div>';
-                    echo $one_task['data_end'];                    
-                    echo $one_task['name'];
-                    echo '</div>';
-                }
+                task_out($list_tasks_controller);
             ?>    
         </div>
     </div>
