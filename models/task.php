@@ -68,19 +68,15 @@ Class Task
                         data_begin,
                         id_task,
                         tasks.name as task_name,
-                        executor.name as executor,
-                        iniciator.name as iniciator,
-                        client.name as client,
-                        controller.name as controller,
+                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 1) as executor,
+                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 3) as iniciator,
+                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 2) as client,
+                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
                         data_execut,
                         data_client,
                         if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet
                     from
                         tasks
-                        join users as iniciator on iniciator.id_user = id_iniciator
-                        join users as client on client.id_user = id_client
-                        join users as executor on executor.id_user = id_executor
-                        join users as controller on controller.id_user = id_controller
                     where
                         id_task = :id_task
                     order by
@@ -91,4 +87,13 @@ Class Task
                     ->getRow($query, ['id_task' => $id_task]);
     }
 
+    function getAction($id_task, $id_user)
+    {
+        $query = 'select id_action, name from actions where id_tip in 
+            (select id_tip from task_users where id_task = :id_task and id_user = :id_user)';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+    }
 }

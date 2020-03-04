@@ -21,6 +21,18 @@
 <div>Дата подтверждения: <?=$task_info['data_client']?></div>
 <div>Статус: <?=$task_info['primet']?></div>     
 
-Исполнено
+<form>
+    <select name="action" required>
+        <option value="">выберете действие</option>
+        <?php
+            foreach ($list_actions as $action) {
+                echo '<option value="' . $action['id_action'] . '">';
+                echo $action['name'];
+                echo '</option>';
+            }
+         ?>
+    </select>
+</form>
+
 </body>
 </html>
