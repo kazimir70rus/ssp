@@ -20,7 +20,7 @@
 <div>Дата исполнения: <?=$task_info['data_execut']?></div>
 <div>Дата подтверждения: <?=$task_info['data_client']?></div>
 <div>Статус: <?=$task_info['primet']?></div>     
-
+<br>
 <form>
     <select name="action" required>
         <option value="">выберете действие</option>
@@ -32,7 +32,12 @@
             }
          ?>
     </select>
-</form>
+
+<input type="submit" name="submit" value="Подтвердить">    
+
+    </form>
+
+
 
 </body>
 </html>

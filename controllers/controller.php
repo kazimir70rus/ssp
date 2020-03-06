@@ -1,7 +1,7 @@
 <?php
 
 $task = new \ssp\models\Task($db);
-$list_tasks = $task->getListTip($id_user->getValue(), 'id_controller', 100);
+$list_tasks = $task->getListTip($id_user->getValue(), 4, 100);
 
 $zagolovok = 'Контролер';
 

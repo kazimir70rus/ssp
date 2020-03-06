@@ -69,4 +69,20 @@ Class Db
             return -1;
         }
     }
+
+    function beginTransaction()
+    {
+        $this->db->beginTransaction();
+    }
+
+    function rollBack()
+    {
+        $this->db->rollBack();
+    }
+
+    function commit()
+    {
+        $this->db->commit();
+    }
+
 }
