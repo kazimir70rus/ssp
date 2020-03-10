@@ -19,7 +19,8 @@
 <div>Контролер: <?=$task_info['controller']?></div>
 <div>Дата исполнения: <?=$task_info['data_execut']?></div>
 <div>Дата подтверждения: <?=$task_info['data_client']?></div>
-<div>Статус: <?=$task_info['primet']?></div>     
+<div>Статус: <?=$task_info['primet']?></div>
+<div>Состояние: <?=$task_info['state']?></div>
 <br>
 <form>
     <select name="action" required>

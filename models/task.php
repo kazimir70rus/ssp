@@ -124,9 +124,11 @@ Class Task
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
                         data_execut,
                         data_client,
-                        if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet
+                        if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
+                        c.name as state
                     from
                         tasks
+                        join `condition` as c using (id_condition)
                     where
                         id_task = :id_task
                     order by
