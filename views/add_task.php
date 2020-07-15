@@ -66,10 +66,10 @@
         </select>
         <br>
         Дата начало:
-        <input type="date" name="data_beg" required>
+        <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required>
         <br>
         Срок исполнения:
-        <input type="date" name="data_end" required>
+        <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required>
         <br>
         <input type="submit" name="submit" value="Добавить">
 

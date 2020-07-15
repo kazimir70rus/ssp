@@ -24,6 +24,9 @@ if (isset($_POST['submit'])) {
 }
 
 $list_users = $user->getList();
+$cur_date = new DateTime();
+$fin_date = new DateTime();
+$fin_date = $fin_date->add(new DateInterval('P3D'));
 
 require_once 'views/add_task.php';
 
