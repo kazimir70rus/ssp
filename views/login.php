@@ -9,7 +9,48 @@
 
 <div id="app">
 
+<form method="post">
 
+    <div class="wdth">
+        <h3>Выберите ваше подразделение</h3>
+    </div>
+
+    <dl>
+        <dt><label for="organisation" class="fnt-mid">Подразделение:</label></dt>
+        <dd>
+            <select v-model="organisation" id="organisation">
+                <option value="" >Выберите подразделение</option>
+                <option v-for="org in organisations" v-bind:value="org.id">
+                {{org.name}}
+                </option>
+            </select>
+        <dd>
+        <dt><label for="login" class="fnt-mid">Ф.И.О. сотрудника:</label></dt>
+        <dd>
+            <select v-model="login" id="login" class="inp inp_sel fnt-mid" name="login">
+                <option value="" >Выберите ФИО</option>
+                <option v-for="i_name in names" v-bind:value="i_name.name" class="fnt-mid">
+                    {{i_name.name}}
+                </option>
+            </select>
+        </dd>
+        <dt><label for="pass" class="fnt-mid">Введите пароль:</label>
+<!--        <dd>
+            <input type="password" name="pass" v-model="pass" id="pass" class="inp inp_txt fnt-mid">
+        </dd>   -->
+        <dd>
+        <input type="password" name="pass"> 
+        </dd>
+ </dl>    
+    <div class="wdth">
+        <h3 class="msg">{{ message }}</h3>
+    </div>
+<!--    <input type="button" class="btn fnt-mid" v-on:click="enter" value="Вход"> -->
+    
+    <input type="submit" name="submit" value="Вход">
+
+</form>
+<!--    
     <form method="post">
         <select v-model="p1">
             <option v-for="org in organisations" v-bind:value="org.id">
@@ -20,6 +61,8 @@
         <input type="password" name="pass">
         <input type="submit" name="submit" value="Вход">
     </form>
+
+-->
 
 </div>
 
@@ -33,15 +76,56 @@ var app = new Vue({
     el: '#app',
     data: {
         organisations: [],
-        p1: '',
+        organisation: '',
+        names: [],
+        login: '',
+        message: '',
+    },
+    watch: {
+        organisation: function() {
+            this.getNames();
+        },
     },
     methods: {
+        getOrganisations: function() {
+            this.organisations.push({id: 1, name: 'Холдинг'});
+            this.organisations.push({id: 2, name: 'Ладья'});
+            this.organisations.push({id: 3, name: 'Управдом'});
+            this.organisations.push({id: 4, name: 'Сорнет'});
+        },
+
+        getNames: function() {
+
+            if (this.organisation == 1) {
+                this.names = [];
+                this.names.push({id: 1, name: 'Директор'});
+                this.names.push({id: 10, name: 'Контролер1'});
+            }
+
+            if (this.organisation == 2) {
+                this.names = [];
+                this.names.push({id: 2, name: 'Гл.бухгалтер'});
+                this.names.push({id: 7, name: 'Бухгалтер1'});
+                this.names.push({id: 8, name: 'Бухгалтер2'});
+            }
+
+            if (this.organisation == 3) {
+                this.names = [];
+                this.names.push({id: 3, name: 'Экономист'});
+                this.names.push({id: 9, name: 'Аналитик1'});
+            }
+
+            if (this.organisation == 4) {
+                this.names = [];
+                this.names.push({id: 5, name: 'Слесарь'});
+                this.names.push({id: 6, name: 'Электрик'});
+            }
+
+            console.log(this.organisation);
+        },
     },
     created: function() {
-        this.organisations.push({id: 1, name: 'Холдинг'});
-        this.organisations.push({id: 2, name: 'Ладья'});
-        this.organisations.push({id: 3, name: 'Управдом'});        
-        console.log(this.organisations[1].name);
+        this.getOrganisations();
     }
 })
 </script>
