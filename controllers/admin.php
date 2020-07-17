@@ -1,3 +1,3 @@
 <?php
 
-require_once 'views/admin.php';
+require_once '../views/admin.php';

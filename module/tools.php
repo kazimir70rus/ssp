@@ -1,6 +1,6 @@
 <?php
 
-namespace advor\module;
+namespace ssp\module;
 
 Class Tools
 {
