@@ -48,4 +48,23 @@ Class User
                     ->getList($query);
     }
 
+    function getListSubordinate($id_parent)
+    {
+        $query ='select id_user, name from users where id_parent = :id_parent order by name';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_parent' => $id_parent]);
+    }
+
+    function getListControllers($id_parent)
+    {
+        $query ='select id_user, name from users where id_parent = :id_parent and is_controller = 1 order by name';
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_parent' => $id_parent]);
+    }
+    
+
 }

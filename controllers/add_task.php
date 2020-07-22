@@ -23,10 +23,16 @@ if (isset($_POST['submit'])) {
         }
 }
 
-$list_users = $user->getList();
+$list_users = $user->getListSubordinate($id_user->getValue());
+$list_controllers = $user->getListControllers($id_user->getValue());
+
+if (count($list_controllers) == 0) {
+    $list_controllers = $list_users;
+}
+
 $cur_date = new DateTime();
 $fin_date = new DateTime();
-$fin_date = $fin_date->add(new DateInterval('P3D'));
+$fin_date = $fin_date->add(\DateInterval::createFromDateString('3 days'));
 
 require_once 'views/add_task.php';
 

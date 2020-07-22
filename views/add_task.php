@@ -13,18 +13,8 @@
         Задание:
         <input type="text" name="task" required>
         <br>
-        Инициатор:
-        <select name="iniciator" required>
-            <option value="">выберете инициатора</option>
-            <?php
-                foreach ($list_users as $user) {
-
-                    echo '<option value="' . $user['id_user'] . '">';
-                    echo $user["name"];
-                    echo '</option>';
-                }
-             ?>
-        </select>
+        Инициатор: <?=$name_user->getValue()?>
+        <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
         <br>
         Потребитель:
         <select name="client" required>
@@ -56,7 +46,7 @@
         <select name="controller" required>
             <option value="">выберете контролера</option>
             <?php
-                foreach ($list_users as $user) {
+                foreach ($list_controllers as $user) {
 
                     echo '<option value="' . $user['id_user'] . '">';
                     echo $user["name"];
