@@ -10,58 +10,67 @@
 <?php require_once 'logout.html'; ?>
 
     <form method="post">
-        Задание:
-        <input type="text" name="task" required>
-        <br>
-        Инициатор: <?=$name_user->getValue()?>
-        <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
-        <br>
-        Потребитель:
-        <select name="client" required>
-            <option value="">выберете потребителя</option>
-            <?php
-                foreach ($list_users as $user) {
 
-                    echo '<option value="' . $user['id_user'] . '">';
-                    echo $user["name"];
-                    echo '</option>';
-                }
-             ?>
-        </select>
-        <br>
-        Исполнитель:
-        <select name="executor" required>
-            <option value="">выберете испольнителя</option>
-            <?php
-                foreach ($list_users as $user) {
+        <div style="display: flex;">
 
-                    echo '<option value="' . $user['id_user'] . '">';
-                    echo $user["name"];
-                    echo '</option>';
-                }
-             ?>
-        </select>
-        <br>
-        Контролер:
-        <select name="controller" required>
-            <option value="">выберете контролера</option>
-            <?php
-                foreach ($list_controllers as $user) {
+            <div style="margin-right: 5rem;">
+                Задание:<br>
+                <textarea name="task" required class="input" style="height: 21rem; box-sizing: border-box;"></textarea>
+            </div>
+            
+            <div>
+                Инициатор: <?=$name_user->getValue()?>
+                <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
+                <br>
+                Потребитель:<br>
+                <select name="client" required class="input input_text">
+                    <option value="">выберете потребителя</option>
+                    <?php
+                        foreach ($list_users as $user) {
 
-                    echo '<option value="' . $user['id_user'] . '">';
-                    echo $user["name"];
-                    echo '</option>';
-                }
-             ?>
-        </select>
-        <br>
-        Дата начало:
-        <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required>
-        <br>
-        Срок исполнения:
-        <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required>
-        <br>
-        <input type="submit" name="submit" value="Добавить">
+                            echo '<option value="' . $user['id_user'] . '">';
+                            echo $user["name"];
+                            echo '</option>';
+                        }
+                     ?>
+                </select>
+                <br>
+                Исполнитель:<br>
+                <select name="executor" required class="input input_text">
+                    <option value="">выберете испольнителя</option>
+                    <?php
+                        foreach ($list_users as $user) {
+
+                            echo '<option value="' . $user['id_user'] . '">';
+                            echo $user["name"];
+                            echo '</option>';
+                        }
+                     ?>
+                </select>
+                <br>
+                Контролер:<br>
+                <select name="controller" required class="input input_text">
+                    <option value="">выберете контролера</option>
+                    <?php
+                        foreach ($list_controllers as $user) {
+
+                            echo '<option value="' . $user['id_user'] . '">';
+                            echo $user["name"];
+                            echo '</option>';
+                        }
+                     ?>
+                </select>
+                <br>
+                Дата начало:<br>
+                <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
+                <br>
+                Срок исполнения:<br>
+                <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
+                <br>
+                <input type="submit" name="submit" value="Добавить" class="input input_button">
+            </div>
+
+        </div>
 
     </form>
 

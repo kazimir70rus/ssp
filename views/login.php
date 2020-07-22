@@ -11,14 +11,12 @@
 
 <form method="post">
 
-    <div class="wdth">
-        <h3>Выберите ваше подразделение</h3>
-    </div>
+    <h3>Выберите ваше подразделение</h3><br>
 
     <dl>
         <dt><label for="organisation" class="fnt-mid">Подразделение:</label></dt>
         <dd>
-            <select v-model="organisation" id="organisation">
+            <select v-model="organisation" id="organisation" class="input input_text">
                 <option value="" >Выберите подразделение</option>
                 <option v-for="org in organisations" v-bind:value="org.id">
                 {{org.name}}
@@ -27,7 +25,7 @@
         <dd>
         <dt><label for="login" class="fnt-mid">Ф.И.О. сотрудника:</label></dt>
         <dd>
-            <select v-model="login" id="login" class="inp inp_sel fnt-mid" name="login">
+            <select v-model="login" id="login" name="login" class="input input_text">
                 <option value="" >Выберите ФИО</option>
                 <option v-for="i_name in names" v-bind:value="i_name.name" class="fnt-mid">
                     {{i_name.name}}
@@ -39,7 +37,7 @@
             <input type="password" name="pass" v-model="pass" id="pass" class="inp inp_txt fnt-mid">
         </dd>   -->
         <dd>
-        <input type="password" name="pass"> 
+        <input type="password" name="pass" class="input input_text"> 
         </dd>
  </dl>    
     <div class="wdth">
@@ -47,7 +45,7 @@
     </div>
 <!--    <input type="button" class="btn fnt-mid" v-on:click="enter" value="Вход"> -->
     
-    <input type="submit" name="submit" value="Вход">
+    <input type="submit" name="submit" value="Вход" class="input input_button">
 
 </form>
 <!--    

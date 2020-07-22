@@ -1,11 +1,3 @@
-<div>
-    Вы зашли как :
-    
-    <b><?=$name_user->getValue()?></b>
-    (
-    <?=$position_user->getValue()?>
-    )
-    <br>
-
-    <a href="<?=BASE_URL?>logout">Выход</a>
+<div class="log_status">
+    Вы зашли как: <b><?=$name_user->getValue()?></b> (<?=$position_user->getValue()?>) <a href="<?=BASE_URL?>logout">Выход</a>
 </div>
