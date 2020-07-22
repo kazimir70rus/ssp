@@ -9,10 +9,10 @@
 <body>
 
 <?php require_once 'logout.html'; ?>
-
+<br>
 <div>Срок: <?=$task_info['data_end']?></div>
 <div>Дата начало: <?=$task_info['data_begin']?></div>
-<div>Задание: <?=$task_info['task_name']?></div>
+<div>Задание: <b><?=$task_info['task_name']?></b></div>
 <div>Испольнитель: <?=$task_info['executor']?></div>
 <div>Инициатор: <?=$task_info['iniciator']?></div>
 <div>Потребитель: <?=$task_info['client']?></div>
