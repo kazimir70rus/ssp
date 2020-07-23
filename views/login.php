@@ -33,39 +33,21 @@
             </select>
         </dd>
         <dt><label for="pass" class="fnt-mid">Введите пароль:</label>
-<!--        <dd>
-            <input type="password" name="pass" v-model="pass" id="pass" class="inp inp_txt fnt-mid">
-        </dd>   -->
         <dd>
         <input type="password" name="pass" class="input input_text"> 
         </dd>
- </dl>    
+    </dl>
     <div class="wdth">
         <h3 class="msg">{{ message }}</h3>
     </div>
-<!--    <input type="button" class="btn fnt-mid" v-on:click="enter" value="Вход"> -->
-    
     <input type="submit" name="submit" value="Вход" class="input input_button">
 
 </form>
-<!--    
-    <form method="post">
-        <select v-model="p1">
-            <option v-for="org in organisations" v-bind:value="org.id">
-            {{org.name}}
-            </option>
-        </select>
-        <input type="text" name="login">
-        <input type="password" name="pass">
-        <input type="submit" name="submit" value="Вход">
-    </form>
-
--->
 
 </div>
 
-<script src="/ssp/js/vue.min.js"></script>
-<script src="/ssp/js/vue-resource.min.js"></script>
+<script src="<?=BASE_URL?>js/vue.min.js"></script>
+<script src="<?=BASE_URL?>js/vue-resource.min.js"></script>
 
 <script>
 

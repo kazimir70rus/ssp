@@ -17,7 +17,7 @@
                 Задание:<br>
                 <textarea name="task" required class="input" style="height: 21rem; box-sizing: border-box;"></textarea>
             </div>
-            
+
             <div>
                 Инициатор: <?=$name_user->getValue()?>
                 <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
