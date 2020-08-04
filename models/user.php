@@ -30,13 +30,18 @@ Class User
                     ->getRow($query, ['id_user' => $id_user]);
     }
 
-    function check($login, $pass)
+    function check($id_organisation, $login, $pass)
     {
-        $query ='select id_user, position from users where name = :login and pass = password(:pass)';
+        $query ='select
+                    id_user, positions.name as position 
+                from
+                    users join positions using (id_position) 
+                where 
+                    users.name = :login and pass = password(:pass) and id_organisation = :id_organisation';
 
         return $this
                     ->db
-                    ->getRow($query, ['login' => $login, 'pass' => $pass]);
+                    ->getRow($query, ['login' => $login, 'pass' => $pass, 'id_organisation' => $id_organisation]);
     }
 
     function getList()
@@ -67,4 +72,14 @@ Class User
     }
     
 
+    // возвращает список организаций
+    function getListOrganisations()
+    {
+        $query = 'select id_organisation, name from organisations order by name';
+
+        return $this
+                    ->db
+                    ->getList($query);
+
+    }
 }

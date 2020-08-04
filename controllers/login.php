@@ -1,16 +1,18 @@
 <?php
 
+$msg = '';
+
+$user = new \ssp\models\User($db);
+
 if (isset($_POST['submit'])) {
-    $login = htmlspecialchars($_POST['login']);
+    $login = mb_strtoupper(htmlspecialchars($_POST['login']));
     $pass = htmlspecialchars($_POST['pass']);
+    $id_organisation = (int)$_POST['id_organisation'];
 
-    $user = new \ssp\models\User($db);
-
-    $result = $user->check($login, $pass);
+    $result = $user->check($id_organisation, $login, $pass);
 
     if (is_array($result)) {
 
-    $id_user = new \ssp\module\SessionVar('id_user');
         $id_user->setValue($result['id_user']);
         $name_user->setValue($login);
         $position_user->setValue($result['position']);
@@ -18,6 +20,9 @@ if (isset($_POST['submit'])) {
         header('Location: ' . BASE_URL);
         exit();
     }
+    $msg = 'пользователь не найден';
 }
+
+$organisations = $user->getListOrganisations();
 
 require_once 'views/login.php';

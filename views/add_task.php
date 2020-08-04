@@ -23,11 +23,12 @@
                 <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
                 <br>
                 Потребитель:<br>
+
                 <select name="client" required class="input input_text">
-                    <option value="">выберете потребителя</option>
+                    <option selected value="<?=$id_user->getValue()?>"><?=$name_user->getValue()?></option>
                     <?php
                         foreach ($list_users as $user) {
-
+                            // по умолчанию инициатор является потребителем
                             echo '<option value="' . $user['id_user'] . '">';
                             echo $user["name"];
                             echo '</option>';
@@ -37,10 +38,9 @@
                 <br>
                 Исполнитель:<br>
                 <select name="executor" required class="input input_text">
-                    <option value="">выберете испольнителя</option>
+                    <option value="">выберете исполнителя</option>
                     <?php
                         foreach ($list_users as $user) {
-
                             echo '<option value="' . $user['id_user'] . '">';
                             echo $user["name"];
                             echo '</option>';
@@ -53,7 +53,6 @@
                     <option value="">выберете контролера</option>
                     <?php
                         foreach ($list_controllers as $user) {
-
                             echo '<option value="' . $user['id_user'] . '">';
                             echo $user["name"];
                             echo '</option>';

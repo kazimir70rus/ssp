@@ -32,7 +32,7 @@ if (count($list_controllers) == 0) {
 
 $cur_date = new DateTime();
 $fin_date = new DateTime();
-$fin_date = $fin_date->add(\DateInterval::createFromDateString('3 days'));
+$fin_date = $fin_date->add(\DateInterval::createFromDateString('5 days'));
 
 require_once 'views/add_task.php';
 
