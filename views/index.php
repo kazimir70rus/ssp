@@ -11,7 +11,7 @@
         width: 100%; /* Ширина таблицы */
     }
     th {
-        background: green; /* Цвет фона ячеек */
+        background: grey; /* Цвет фона ячеек */
         color: white; /* Цвет текста */
     }
 
@@ -32,7 +32,7 @@
             width: 99%;
         }
     }    
-    </style>    
+</style>    
 <!-- --> 
 
 </head>
@@ -44,11 +44,11 @@ function task_out($tasks)
 {
     $i = 0;
     foreach ($tasks as $task) {
-        echo '<div><a href="' . BASE_URL . 'task/' . $task['id_task'] . '">';
-        echo $task['data_end'];
-        echo $task['name'];
-        echo '</a></div>';
-        echo $task['stat'];
+        echo '<tr>';
+        echo '<td>', $task['data_end'], '</td>';
+        echo '<td><a href="' . BASE_URL . 'task/' . $task['id_task'] . '">', $task['name'], '</a></td>';
+        echo '<td>', $task['stat'], '</td>';
+        echo '</tr>';
     }
 }
 
@@ -66,14 +66,28 @@ function task_out($tasks)
             <div><b>Список задач (<a href="<?=BASE_URL?>executor/<?=$id_user->getValue()?>">Исполнитель</a>):</b></div>
             <br>
             <?php
+                echo '<table border="0">';
+                echo '<tr>';
+                echo '<th>Дата исполнения</th>';
+                echo '<th>Задание</th>';
+                echo '<th>Текущее состояние</th>';
+                echo '</tr>';
                 task_out($list_tasks_executor);
+                echo '</table>';
             ?>    
         </div>
         <div class="item" style="border: 1px solid green">
             <div><b>Список задач (<a href="<?=BASE_URL?>iniciator/<?=$id_user->getValue()?>">Инициатор</a>):</b></div>
             <br>
             <?php
+                echo '<table border="0">';
+                echo '<tr>';
+                echo '<th>Дата исполнения</th>';
+                echo '<th>Задание</th>';
+                echo '<th>Текущее состояние</th>';                
+                echo '</tr>';
                 task_out($list_tasks_iniciator);
+                echo '</table>';
             ?>    
         </div>
     </div>
@@ -83,14 +97,28 @@ function task_out($tasks)
             <div><b>Список задач (<a href="<?=BASE_URL?>client/<?=$id_user->getValue()?>">Потребитель</a>):</b></div>
             <br>
             <?php
+                echo '<table border="0">';
+                echo '<tr>';
+                echo '<th>Дата исполнения</th>';
+                echo '<th>Задание</th>';
+                echo '<th>Текущее состояние</th>';                
+                echo '</tr>';
                 task_out($list_tasks_client);
+                echo '</table>';
             ?>    
         </div>
         <div class="item" style="border: 1px solid black">
             <div><b>Список задач (<a href="<?=BASE_URL?>controller/<?=$id_user->getValue()?>">Котролер</a>):</b></div>
             <br>            
             <?php
+                echo '<table border="0">';
+                echo '<tr>';
+                echo '<th>Дата исполнения</th>';
+                echo '<th>Задание</th>';
+                echo '<th>Текущее состояние</th>';                
+                echo '</tr>';
                 task_out($list_tasks_controller);
+                echo '</table>';
             ?>    
         </div>
     </div>
