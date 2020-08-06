@@ -42,15 +42,18 @@
 
 function task_out($tasks)
 {
+    $i = 0;
     foreach ($tasks as $task) {
         echo '<div><a href="' . BASE_URL . 'task/' . $task['id_task'] . '">';
-        echo $task['data_end'];                    
+        echo $task['data_end'];
         echo $task['name'];
         echo '</a></div>';
+        echo $task['stat'];
     }
 }
 
  ?>
+    
     <br>
 
     <a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a>

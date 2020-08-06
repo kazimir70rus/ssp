@@ -83,8 +83,19 @@ Class Task
  */   
     function getListTip($id_user, $id_tip, $limit = 10)
     {
-        $query = 'select id_task, name, data_end from task_users join tasks using (id_task) where id_user = :id_user and id_tip = :id_tip order by data_end desc limit ' . $limit;
-
+        $query = 'select
+                        id_task,
+                        tasks.name,
+                        data_end,
+                        condition.name as stat
+                    from
+                        task_users
+                        join tasks using (id_task)
+                        join `condition` using (id_condition)
+                    where
+                        id_user = :id_user and id_tip = :id_tip
+                    order by
+                        data_end desc limit ' . $limit;
         return $this
                     ->db
                     ->getList($query, ['id_user' => $id_user, 'id_tip' => $id_tip]);
