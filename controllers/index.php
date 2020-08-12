@@ -3,8 +3,6 @@
 $task = new \ssp\models\Task($db);
 
 $list_tasks_executor = $task->getListTip($id_user->getValue(), 1);
-$list_tasks_iniciator = $task->getListTip($id_user->getValue(), 3);
-$list_tasks_client = $task->getListTip($id_user->getValue(), 2);
-$list_tasks_controller = $task->getListTip($id_user->getValue(), 4);
+$list_tasks_for_control = $task->getTaskForControl($id_user->getValue());
 
 require_once 'views/index.php';

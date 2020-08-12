@@ -70,7 +70,7 @@ Class User
                     ->db
                     ->getList($query, ['id_parent' => $id_parent]);
     }
-    
+
 
     // возвращает список организаций
     function getListOrganisations()

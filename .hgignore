@@ -3,3 +3,5 @@ syntax: glob
 .git/*
 
 .*.swp
+
+test_*.*

@@ -6,10 +6,12 @@ Class Task
 {
     private $db;
 
+
     function __construct($db)
     {
         $this->db = $db;
     }
+
 
     function add($id_users, $task, $id_author, $data_beg, $data_end)
     {
@@ -60,34 +62,37 @@ Class Task
             return true;
         }
     }
-/*
-    function add($id_users, $task, $id_author, $data_beg, $data_end)
-    {
-        $query = 'insert into tasks
-            (id_executor, id_iniciator, id_client, id_controller, name, id_author, data_begin, data_end)
-            values(:id_executor, :id_iniciator, :id_client, :id_controller, :name, :author, :data_begin, :data_end)';
 
-        return $this
-                    ->db
-                    ->insertData($query, [
-                                            'id_executor'   => $id_users['executor'],
-                                            'id_iniciator'  => $id_users['iniciator'],
-                                            'id_client'     => $id_users['client'],
-                                            'id_controller' => $id_users['controller'],
-                                            'name'          => $task,
-                                            'author'        => $id_author,
-                                            'data_begin'    => $data_beg,
-                                            'data_end'      => $data_end,
-                                         ]);
-    }
- */   
+
     function getListTip($id_user, $id_tip, $limit = 10)
     {
-        $query = 'select id_task, name, data_end from task_users join tasks using (id_task) where id_user = :id_user and id_tip = :id_tip order by data_end desc limit ' . $limit;
+        $query = '
+                  select 
+                    id_task, tasks.name as name, data_end, conditions.name as `condition`
+                  from 
+                    task_users join tasks using (id_task) join conditions using (id_condition)
+                  where 
+                    id_user = :id_user and id_tip = :id_tip order by data_end desc limit ' . $limit;
 
         return $this
                     ->db
                     ->getList($query, ['id_user' => $id_user, 'id_tip' => $id_tip]);
+    }
+
+
+    function getTaskForControl($id_user, $limit = 10)
+    {
+        $query = " 
+                  select distinct
+                    id_task, tasks.name as name, data_end, if(tasks.id_condition = 1, '', conditions.name) as `condition`
+                  from 
+                    task_users join tasks using (id_task) join conditions using (id_condition)
+                  where 
+                    id_user = :id_user and id_tip != 1 order by data_end desc limit " . $limit;
+
+        return $this
+                    ->db
+                    ->getList($query, ['id_user' => $id_user]);
     }
 
 
@@ -100,16 +105,18 @@ Class Task
                     ->getList($query, ['id_executor' => $id_executor]);
     }
 
+
     function getListAuthorTasks($id_author)
     {
         $query = 'select tasks.id_task, tasks.name, users.name as fio_executor, tasks.data_end from tasks, users
                     where tasks.id_executor=users.id_user and tasks.id_author = :id_author
                     order by tasks.data_end';
-        
+
         return $this
                     ->db
                     ->getList($query, ['id_author' => $id_author]);
     }
+
 
     function getInfo($id_task)
     {
@@ -128,7 +135,7 @@ Class Task
                         c.name as state
                     from
                         tasks
-                        join `condition` as c using (id_condition)
+                        join conditions as c using (id_condition)
                     where
                         id_task = :id_task
                     order by
@@ -138,6 +145,7 @@ Class Task
                     ->db
                     ->getRow($query, ['id_task' => $id_task]);
     }
+
 
     function getAction($id_task, $id_user)
     {

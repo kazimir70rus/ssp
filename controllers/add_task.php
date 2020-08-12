@@ -9,7 +9,7 @@ if (isset($_POST['submit'])) {
     $id_users['executor'] = (int)$_POST['executor'];
     $id_users['iniciator'] = (int)$_POST['iniciator'];
     $id_users['client'] = (int)$_POST['client'];
-    $id_users['controller'] = (int)$_POST['controller'];    
+    $id_users['controller'] = (int)$_POST['controller'];
     $task = new \ssp\models\Task($db);
     $data_beg = $_POST['data_beg'];
     $data_end = $_POST['data_end'];
