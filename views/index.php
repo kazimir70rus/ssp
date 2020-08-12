@@ -17,7 +17,6 @@
             text-align: left;
             font-size: 1.5rem;
         }
-
         .container {
           display: flex;
         }
@@ -36,7 +35,6 @@
             }
         }    
     </style>    
-
 </head>
 <body>
 
@@ -72,6 +70,7 @@ function task_out($tasks, $header)
 
     <br>    
     <br>    
+
     <div>
         <?php
             $header = 'задачи к выполнению';
