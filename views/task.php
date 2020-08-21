@@ -73,14 +73,9 @@
         <input type="hidden" name="id_task" value="<?=$id_task?>">
         <select v-model="id_action" name="id_action" required class="input input_text">
             <option value="">выберете действие</option>
-            <?php
-                foreach ($list_actions as $action) {
-                    echo '<option value="' . $action['id_action'] . '">';
-                    echo $action['name'];
-                    echo '</option>';
-                }
-             ?>
+            <option v-for="action in actions" v-bind:value="action.id_action">{{action.name}}</option>
         </select>
+        
         <div v-if="show_dt">
             <input type="date" name="dt" class="input input_text">
         </div>
@@ -92,25 +87,47 @@
 </div>
 
 <script src="<?=BASE_URL?>js/vue.min.js"></script>
+<script src="<?=BASE_URL?>js/vue-resource.min.js"></script>
 
 <script>
 
 var app = new Vue({
     el: '#app',
     data: {
+        server: '<?=BASE_URL?>',
+        actions: [],
+        id_task: <?=$id_task?>,
         show_dt: false,
         id_action: '',
     },
     watch: {
         id_action: function () {
-            // to-do:
-            // как-то связать с полем need_dt таблицы actions
-            if (parseInt(this.id_action) == 9) {
-                this.show_dt = true;
-            } else {
-                this.show_dt = false;
+            for (let i = 0; i < this.actions.length; ++i) {
+                if (parseInt(this.id_action) == this.actions[i].id_action) {
+                    if (this.actions[i].need_dt == 1) {
+                        this.show_dt = true;
+                    } else {
+                        this.show_dt = false;
+                    }
+                    break;
+                }
             }
         },
+    },
+    methods: {
+        getActions: function(id) {
+            this.$http.get(this.server + 'getactions/' + this.id_task).then(
+                function (otvet) {
+                    this.actions = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+    },
+    created: function() {
+        this.getActions(1);
     }
 });
 

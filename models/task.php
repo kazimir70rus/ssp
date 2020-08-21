@@ -149,8 +149,16 @@ Class Task
 
     function getAction($id_task, $id_user)
     {
-        $query = 'select id_action, name from actions where id_tip in 
-            (select id_tip from task_users where id_task = :id_task and id_user = :id_user)';
+        // узнаем роль пользователя в задаче
+
+        $query = '
+            select
+                id_action, name, need_dt
+            from
+                enable_actions join actions using (id_action)
+            where
+                enable_actions.id_condition = (select id_condition from tasks where id_task = :id_task)
+                and id_tip in (select id_tip from task_users where id_task = :id_task and id_user = :id_user)';
 
         return $this
                     ->db
