@@ -164,4 +164,16 @@ Class Task
                     ->db
                     ->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
+
+
+    function updateCondition($id_task, $id_action)
+    {
+        $query = '
+            update tasks
+                set id_condition = (select id_condition from actions where id_action = :id_action)
+            where
+                id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task, 'id_action' => $id_action]);
+    }
 }

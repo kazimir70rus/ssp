@@ -1,5 +1,7 @@
 <?php
 
+$task = new \ssp\models\Task($db);
+
 if (isset($_POST['submit'])) {
     $event = [
         'id_task'   => (int)$_POST['id_task'],
@@ -25,12 +27,15 @@ if (isset($_POST['submit'])) {
         $result = $events->add($event);
     }
 
-   // сделать:
-   // изменить статут задачи 
+    if ($result > 0) {
+        $task->updateCondition($event['id_task'], $event['id_action']);
+
+        // todo
+        // перенеправление на другую страницу
+    }
 }
 
 $id_task = (int)$param[1];
-$task = new \ssp\models\Task($db);
 $task_info = $task->getInfo($id_task);
 
 // сделать:
