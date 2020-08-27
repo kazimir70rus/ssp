@@ -166,14 +166,43 @@ Class Task
     }
 
 
-    function updateCondition($id_task, $id_action)
+    function updateCondition($event)
     {
+        // в зависимости от действия изменить параметры задачи
+
+        // изменение состояния задачи
         $query = '
             update tasks
                 set id_condition = (select id_condition from actions where id_action = :id_action)
             where
-                id_task = :id_task';
+                id_task = :id_task
+                and id_condition = 
+                    (select id_condition from enable_actions where id_action = :id_action and id_tip in 
+                        (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
 
-        return $this->db->updateData($query, ['id_task' => $id_task, 'id_action' => $id_action]);
+        return $this
+                    ->db
+                    ->updateData($query, [
+                                            'id_task'   => $event['id_task'],
+                                            'id_action' => $event['id_action'],
+                                            'id_user'   => $event['id_user'],
+                                        ]);
+    }
+
+
+    // возвращаем историю событий у задачи
+    function getHistoryActions($id_task)
+    {
+        $query = '
+            select
+                dt_create, dt_wish, users.name as user, actions.name as action, comment
+            from
+                events
+                join users using (id_user)
+                join actions using (id_action)
+            where
+                id_task = 25';
+
+        return $this->db->getList($query, ['id_task' => $id_task]);
     }
 }

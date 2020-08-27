@@ -4,13 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link href="<?=BASE_URL?>css/main.css" rel="stylesheet" type="text/css">
-
-<style>
-    table {
-        width: 39%; /* Ширина таблицы */
-    }
-</style>    
-
 </head>
 <body>
 
@@ -84,6 +77,21 @@
             <input type="submit" name="submit" value="Подтвердить" class="input input_button">
         </div>
     </form>
+</div>
+
+<div>
+    <table>
+    <caption>история изменений</caption>
+    <?php foreach ($history_actions as $event) { ?>
+        <tr>
+            <td><?=$event['dt_create']?></td>
+            <td><?=$event['user']?></td>
+            <td><?=$event['action']?></td>
+            <td><?=$event['dt_wish']?></td>
+            <td><?=$event['comment']?></td>
+        </tr>    
+    <?php } ?>
+    </table>
 </div>
 
 <script src="<?=BASE_URL?>js/vue.min.js"></script>

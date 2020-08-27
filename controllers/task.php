@@ -10,7 +10,6 @@ if (isset($_POST['submit'])) {
         'id_user'   => $id_user->getValue(),
     ];
 
-    // to-do:
     // дата нужна не всегда, но если нужна должна быть корректной
     // запрашиваем список действия для которых важна дата
     $events = new \ssp\models\Event($db);
@@ -28,19 +27,23 @@ if (isset($_POST['submit'])) {
     }
 
     if ($result > 0) {
-        $task->updateCondition($event['id_task'], $event['id_action']);
-
-        // todo
-        // перенеправление на другую страницу
+        $result = $task->updateCondition($event);
+        
+        if ($result > 0) {
+            // перенеправление на другую страницу
+            header('Location: ' . BASE_URL);
+            exit;
+        }
     }
 }
 
 $id_task = (int)$param[1];
 $task_info = $task->getInfo($id_task);
 
-// сделать:
 // выбор возможных действий зависит от текущего состояния задачи и роли пользователя в ней
 $list_actions = $task->getAction($id_task, $id_user->getValue());
 
+// вывод истории действий которые проводились над этой задачей
+$history_actions = $task->getHistoryActions($id_task);
 
 require_once 'views/task.php';
