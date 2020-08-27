@@ -10,24 +10,24 @@ if (isset($_POST['submit'])) {
         'id_user'   => $id_user->getValue(),
     ];
 
-    // дата нужна не всегда, но если нужна должна быть корректной
-    // запрашиваем список действия для которых важна дата
-    $events = new \ssp\models\Event($db);
-
-    if (count($events->checkActionNeedDate($event['id_action']))) {
-        // дата нужна
-        $dt = DateTime::createFromFormat('Y-m-d', $_POST['dt']);
-
-        if ($dt) {
-            $event['dt'] = $dt->format('Y-m-d');
-            $result = $events->add($event);
-        }
-    } else {
-        $result = $events->add($event);
-    }
+    $result = $task->updateCondition($event);
 
     if ($result > 0) {
-        $result = $task->updateCondition($event);
+        // дата нужна не всегда, но если нужна должна быть корректной
+        // запрашиваем список действия для которых важна дата
+        $events = new \ssp\models\Event($db);
+
+        if (count($events->checkActionNeedDate($event['id_action']))) {
+            // дата нужна
+            $dt = DateTime::createFromFormat('Y-m-d', $_POST['dt']);
+
+            if ($dt) {
+                $event['dt'] = $dt->format('Y-m-d');
+                $result = $events->add($event);
+            }
+        } else {
+            $result = $events->add($event);
+        }
         
         if ($result > 0) {
             // перенеправление на другую страницу
@@ -35,6 +35,7 @@ if (isset($_POST['submit'])) {
             exit;
         }
     }
+
 }
 
 $id_task = (int)$param[1];
