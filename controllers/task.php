@@ -13,6 +13,20 @@ if (isset($_POST['submit'])) {
     $result = $task->updateCondition($event);
 
     if ($result > 0) {
+        // изменение параметров задачи
+        // если id_action = 5, то вставляем последнюю дату из истории
+        if ($event['id_action'] == 5) {
+            $task->changeDateEnd($event['id_task']);
+        }
+
+        if ($event['id_action'] == 12) {
+            $task->changeDateExec($event['id_task']);
+        }
+
+        if ($event['id_action'] == 13) {
+            $task->changeDateClient($event['id_task']);
+        }
+
         // дата нужна не всегда, но если нужна должна быть корректной
         // запрашиваем список действия для которых важна дата
         $events = new \ssp\models\Event($db);

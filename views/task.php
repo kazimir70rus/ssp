@@ -24,7 +24,7 @@
             <td><b><?=$task_info['task_name']?></b></td>
         </tr>
         <tr>
-            <td>Испольнитель:</td>
+            <td>Исполнитель:</td>
             <td><?=$task_info['executor']?></td>
         </tr>
         <tr>
@@ -110,15 +110,21 @@ var app = new Vue({
     },
     watch: {
         id_action: function () {
+            let found = false;
+            
             for (let i = 0; i < this.actions.length; ++i) {
                 if (parseInt(this.id_action) == this.actions[i].id_action) {
                     if (this.actions[i].need_dt == 1) {
-                        this.show_dt = true;
-                    } else {
-                        this.show_dt = false;
+                        found = true;
+                        break;
                     }
-                    break;
                 }
+            }
+
+            if (found) {
+                this.show_dt = true;
+            } else {
+                this.show_dt = false;
             }
         },
     },

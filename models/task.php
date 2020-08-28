@@ -168,8 +168,6 @@ Class Task
 
     function updateCondition($event)
     {
-        // в зависимости от действия изменить параметры задачи
-
         // изменение состояния задачи
         $query = '
             update tasks
@@ -201,8 +199,58 @@ Class Task
                 join users using (id_user)
                 join actions using (id_action)
             where
-                id_task = 25';
+                id_task = :id_task
+            order by
+                id_event desc';
 
         return $this->db->getList($query, ['id_task' => $id_task]);
+    }
+
+
+    // изменяем срок завершения задачи
+    function changeDateEnd($id_task)
+    {
+        $query = '
+            update tasks
+                set data_end = (
+                    select
+                        dt_wish
+                    from
+                        events
+                    where
+                        id_task = :id_task
+                        and dt_wish is not null
+                    order by
+                        id_event desc
+                    limit 1
+                )
+            where
+                id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+
+
+    function changeDateExec($id_task)
+    {
+        $query = '
+            update tasks
+                set data_execut = now()
+            where
+                id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+
+
+    function changeDateClient($id_task)
+    {
+        $query = '
+            update tasks
+                set data_client = now()
+            where
+                id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
     }
 }

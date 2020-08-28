@@ -1,3 +1,8 @@
 <div class="log_status">
-    Вы зашли как: <b><?=$name_user->getValue()?></b> (<?=$position_user->getValue()?>) <a href="<?=BASE_URL?>logout">Выход</a>
+    <div style="display: flex; justify-content: space-between;">
+        <div><a href="<?=BASE_URL?>">на главную</a></div>
+        <div>
+            Вы зашли как: <b><?=$name_user->getValue()?></b> (<?=$position_user->getValue()?>) <a href="<?=BASE_URL?>logout">Выход</a>
+        </div>
+    </div>
 </div>
