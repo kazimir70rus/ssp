@@ -13,6 +13,9 @@
             background: green; /* Цвет фона ячеек */
             color: white; /* Цвет текста */
         }
+        td {
+            padding: 0.3rem;
+        }
         caption {
             text-align: left;
             font-size: 1.5rem;
@@ -46,9 +49,9 @@ function task_out($tasks, $header)
         echo '<table>';
         echo "<caption>{$header}</caption>";
         echo '<tr>';
-        echo '<th>срок</th>';
+        echo '<th style="width: 6rem">срок</th>';
         echo '<th>задача</th>';
-        echo '<th>статус</th>';
+        echo '<th style="width: 25rem">состояние</th>';
         echo '</tr>';
         foreach ($tasks as $task) {
             echo '<tr>';
@@ -77,6 +80,9 @@ function task_out($tasks, $header)
             task_out($list_tasks_executor, $header);
         ?>    
     </div>
+
+    <br>    
+    <br>    
 
     <div>
         <?php

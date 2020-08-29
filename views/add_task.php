@@ -66,6 +66,9 @@
                 Срок исполнения:<br>
                 <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
+                Штрафные баллы:<br>
+                <input type="number" name="penalty" value="0" required class="input input_text">
+                <br>
                 <input type="submit" name="submit" value="Добавить" class="input input_button">
             </div>
 
