@@ -4,17 +4,20 @@ $user = new \ssp\models\User($db);
 
 if (isset($_POST['submit'])) {
 
-    $name = htmlspecialchars($_POST['task']);
     $task_info = [];
-    $task_info['executor'] = (int)$_POST['executor'];
-    $task_info['iniciator'] = (int)$_POST['iniciator'];
-    $task_info['client'] = (int)$_POST['client'];
+    $task_info['name']       = htmlspecialchars($_POST['task']);
+    $task_info['executor']   = (int)$_POST['executor'];
+    $task_info['iniciator']  = (int)$_POST['iniciator'];
+    $task_info['client']     = (int)$_POST['client'];
     $task_info['controller'] = (int)$_POST['controller'];
-    $task = new \ssp\models\Task($db);
-    $data_beg = $_POST['data_beg'];
-    $data_end = $_POST['data_end'];
+    $task_info['data_beg']   = $_POST['data_beg'];
+    $task_info['data_end']   = $_POST['data_end'];
+    $task_info['penalty']    = (int)$_POST['penalty'];
+    $task_info['author']     = $id_user->getValue();
 
-    if ($task->add($task_info, $name, $id_user->getValue(), $data_beg, $data_end) > 0) {
+    $task = new \ssp\models\Task($db);
+
+    if ($task->add($task_info) > 0) {
         header('Location: ' . BASE_URL);
         exit;
     }

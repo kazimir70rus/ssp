@@ -13,23 +13,25 @@ Class Task
     }
 
 
-    function add($id_users, $task, $id_author, $data_beg, $data_end)
+    function add($task_info)
     {
         $this->db->beginTransaction();
 
-        $query = 'insert into tasks
-            (name, id_author, data_begin, data_end)
-            values(:name, :author, :data_begin, :data_end)';
+        $query = '  insert into tasks
+                        (name, id_author, data_begin, data_end, penalty)
+                    values
+                        (:name, :author, :data_begin, :data_end, :penalty)';
 
         $id_task = $this
                         ->db
                         ->insertData($query, [
-                                                'name'          => $task,
-                                                'author'        => $id_author,
-                                                'data_begin'    => $data_beg,
-                                                'data_end'      => $data_end,
+                                                'name'       => $task_info['name'],
+                                                'author'     => $task_info['author'],
+                                                'data_begin' => $task_info['data_beg'],
+                                                'data_end'   => $task_info['data_end'],
+                                                'penalty'    => $task_info['penalty'],
                                             ]);
-        if ($id_task != -1) {
+        if ($id_task > 0) {
             $error = false;
             $query = 'insert into
                             task_users (id_task, id_user, id_tip)
@@ -41,13 +43,13 @@ Class Task
             $result = $this
                             ->db
                             ->insertData($query, [
-                                                    'id_executor'   => $id_users['executor'],
-                                                    'id_iniciator'  => $id_users['iniciator'],
-                                                    'id_client'     => $id_users['client'],
-                                                    'id_controller' => $id_users['controller'],
+                                                    'id_executor'   => $task_info['executor'],
+                                                    'id_iniciator'  => $task_info['iniciator'],
+                                                    'id_client'     => $task_info['client'],
+                                                    'id_controller' => $task_info['controller'],
                                                     'id_task'       => $id_task,
                                                 ]);
-            if ($result == -1) {
+            if ($result < 1) {
                 $error = true;
             }
         } else {
