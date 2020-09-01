@@ -44,12 +44,18 @@ if (isset($_POST['submit'])) {
         }
         
         if ($result > 0) {
+
+            // id_action = 17 это редактирование
+            if ($event['id_action'] == 17) {
+                header('Location: ' . BASE_URL . 'edit_task/' . $event['id_task']);
+                exit;
+            }
+
             // перенеправление на другую страницу
             header('Location: ' . BASE_URL);
             exit;
         }
     }
-
 }
 
 $id_task = (int)$param[1];

@@ -31,6 +31,7 @@ Class Task
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
                                             ]);
+
         if ($id_task > 0) {
             $error = false;
             $query = 'insert into
@@ -49,7 +50,8 @@ Class Task
                                                     'id_controller' => $task_info['controller'],
                                                     'id_task'       => $id_task,
                                                 ]);
-            if ($result < 1) {
+
+            if ($result == -1) {
                 $error = true;
             }
         } else {
@@ -134,7 +136,8 @@ Class Task
                         data_execut,
                         data_client,
                         if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
-                        c.name as state
+                        c.name as state,
+                        penalty
                     from
                         tasks
                         join conditions as c using (id_condition)
@@ -254,5 +257,112 @@ Class Task
                 id_task = :id_task';
 
         return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+
+
+    function getShortDetail($id_task, $id_user)
+    {
+        // информацию о задаче может редактировать только инициатор или контроллер,
+        // и только в сотоянии - новая
+        $query = '
+            select
+                name, data_begin, data_end, penalty,
+                (select id_user from task_users where id_task = :id_task and id_tip = 1) as id_executor,
+                (select id_user from task_users where id_task = :id_task and id_tip = 2) as id_client,
+                (select id_user from task_users where id_task = :id_task and id_tip = 3) as id_iniciator,
+                (select id_user from task_users where id_task = :id_task and id_tip = 4) as id_controller
+            from
+                tasks
+            where
+                tasks.id_task = :id_task
+                and id_condition = 10
+            having 
+                id_iniciator = :id_user
+                or id_controller = :id_user';
+
+        return $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+    }
+
+
+    function changeEditToNew($id_task, $id_user)
+    {
+        $query = '
+            update tasks join task_users using (id_task)
+                set id_condition = 9
+            where
+                id_task = :id_task
+                and id_condition = 10
+                and id_user = :id_user
+                and id_tip in (3)';
+
+        return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+    }
+
+
+    function saveAfterEdit($task_info)
+    {
+        $this->db->beginTransaction();
+
+        $query = '
+            update tasks join task_users using (id_task)
+                set id_condition = 9,
+                name = :name,
+                data_begin = :data_beg,
+                data_end = :data_end,
+                penalty = :penalty
+            where
+                id_task = :id_task
+                and id_condition = 10
+                and id_user = :id_user
+                and id_tip in (3)';
+
+        $result1 = $this
+                        ->db
+                        ->updateData($query, [
+                                                'id_task'    => $task_info['id_task'],
+                                                'id_user'    => $task_info['id_user'],
+                                                'name'       => $task_info['name'],
+                                                'data_beg'   => $task_info['data_beg'],
+                                                'data_end'   => $task_info['data_end'],
+                                                'penalty'    => $task_info['penalty'],
+                                             ]);
+
+        $query = '  update task_users
+                        set id_user = :id_executor
+                    where
+                        id_task = :id_task
+                        and id_tip = 1';
+        $result2 = $this->db->updateData($query, [
+                                                    'id_task'     => $task_info['id_task'],
+                                                    'id_executor' => $task_info['id_executor'],
+                                                 ]);
+
+        $query = '  update task_users
+                        set id_user = :id_client
+                    where
+                        id_task = :id_task
+                        and id_tip = 2';
+        $result3 = $this->db->updateData($query, [
+                                                    'id_task'   => $task_info['id_task'],
+                                                    'id_client' => $task_info['id_client'],
+                                                 ]);
+
+        $query = '  update task_users
+                        set id_user = :id_controller
+                    where
+                        id_task = :id_task
+                        and id_tip = 4';
+        $result4 = $this->db->updateData($query, [
+                                                    'id_task'       => $task_info['id_task'],
+                                                    'id_controller' => $task_info['id_controller'],
+                                                ]);
+
+        if (($result1 == -1) || ($result2 == -1) || ($result3 == -1) || ($result4 == -1)) {
+            $this->db->rollBack();
+            return false;
+        } else {
+            $this->db->commit();
+            return true;
+        }
     }
 }

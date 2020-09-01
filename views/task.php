@@ -48,6 +48,10 @@
             <td><?=$task_info['data_client']?></td>
         </tr>
         <tr>
+            <td>Штрафные баллы:</td>
+            <td><?=$task_info['penalty']?></td>
+        </tr>
+        <tr>
             <td>Статус:</td>
             <td><?=$task_info['primet']?></td>
         </tr>
@@ -55,13 +59,8 @@
             <td>Состояние:</td>
             <td><?=$task_info['state']?></td>
         </tr>
-        <tr>
-            <td></td>
-            <td></td>
-        </tr>
-
     </table>
-
+    <br>
     <form method="post">
         <input type="hidden" name="id_task" value="<?=$id_task?>">
         <select v-model="id_action" name="id_action" required class="input input_text">
@@ -73,7 +72,8 @@
             <input type="date" name="dt" class="input input_text">
         </div>
         <div>
-            <textarea name="comment" class="input"></textarea><br>
+            Примечание:<br>
+            <textarea name="comment" class="input" style="height: 5rem; max-width: 40rem;"></textarea><br>
             <input type="submit" name="submit" value="Подтвердить" class="input input_button">
         </div>
     </form>
