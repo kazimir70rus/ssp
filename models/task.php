@@ -183,13 +183,35 @@ Class Task
                     (select id_condition from enable_actions where id_action = :id_action and id_tip in 
                         (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
 
-        return $this
+        $result = $this
                     ->db
                     ->updateData($query, [
                                             'id_task'   => $event['id_task'],
                                             'id_action' => $event['id_action'],
                                             'id_user'   => $event['id_user'],
                                         ]);
+        
+        if ($result > 0) {
+            // изменение параметров задачи
+            // если id_action = 5, то вставляем последнюю дату из истории
+            if ($event['id_action'] == 5) {
+                $this->changeDateEnd($event['id_task']);
+            }
+
+            if ($event['id_action'] == 12) {
+                $this->changeDateExec($event['id_task']);
+            }
+
+            if ($event['id_action'] == 13) {
+                $this->changeDateClient($event['id_task']);
+            }
+
+            $events = new \ssp\models\Event($this->db);
+
+            return $events->add($event);
+        }
+
+        return -1;
     }
 
 
@@ -364,5 +386,22 @@ Class Task
             $this->db->commit();
             return true;
         }
+    }
+
+
+    // устанавливаем состояние "выполняется" для задачи, если пользователь исполнитель и задача в статусе "новая"
+    function checkAndSetExec($id_task, $id_user)
+    {
+        $query = '  update
+                        tasks join task_users using (id_task)
+                    set
+                        id_condition = 1
+                    where
+                        id_task = :id_task
+                        and id_condition = 9
+                        and id_tip = 1
+                        and id_user = :id_user';
+        
+        return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
 }

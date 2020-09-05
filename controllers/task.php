@@ -1,8 +1,25 @@
 <?php
 
+function checkDt()
+{
+    if (!isset($_POST['dt'])) {
+        return true;
+    }
+
+    $dt = DateTime::createFromFormat('Y-m-d', $_POST['dt']);
+
+    if ($dt) {
+
+        return $dt->format('Y-m-d');
+    }
+
+    return false;
+}
+
 $task = new \ssp\models\Task($db);
 
 if (isset($_POST['submit'])) {
+    
     $event = [
         'id_task'   => (int)$_POST['id_task'],
         'id_action' => (int)$_POST['id_action'],
@@ -10,55 +27,39 @@ if (isset($_POST['submit'])) {
         'id_user'   => $id_user->getValue(),
     ];
 
-    $result = $task->updateCondition($event);
+    $dt = checkDt();
 
-    if ($result > 0) {
-        // изменение параметров задачи
-        // если id_action = 5, то вставляем последнюю дату из истории
-        if ($event['id_action'] == 5) {
-            $task->changeDateEnd($event['id_task']);
-        }
+    if (strlen($dt) > 1) {
+        $event['dt'] = $dt;
+    }
 
-        if ($event['id_action'] == 12) {
-            $task->changeDateExec($event['id_task']);
-        }
+    if ($task->updateCondition($event) > 0) {
 
-        if ($event['id_action'] == 13) {
-            $task->changeDateClient($event['id_task']);
-        }
-
-        // дата нужна не всегда, но если нужна должна быть корректной
-        // запрашиваем список действия для которых важна дата
-        $events = new \ssp\models\Event($db);
-
-        if (count($events->checkActionNeedDate($event['id_action']))) {
-            // дата нужна
-            $dt = DateTime::createFromFormat('Y-m-d', $_POST['dt']);
-
-            if ($dt) {
-                $event['dt'] = $dt->format('Y-m-d');
-                $result = $events->add($event);
-            }
-        } else {
-            $result = $events->add($event);
-        }
-        
-        if ($result > 0) {
-
-            // id_action = 17 это редактирование
-            if ($event['id_action'] == 17) {
-                header('Location: ' . BASE_URL . 'edit_task/' . $event['id_task']);
-                exit;
-            }
-
-            // перенеправление на другую страницу
-            header('Location: ' . BASE_URL);
+        // id_action = 17 это редактирование
+        if ($event['id_action'] == 17) {
+            header('Location: ' . BASE_URL . 'edit_task/' . $event['id_task']);
             exit;
         }
+
+        // после выполнения действия перенеправление на главную страницу
+        header('Location: ' . BASE_URL);
+        exit;
     }
 }
 
 $id_task = (int)$param[1];
+
+// если для данной задачи пользователь является исполнителем и состояние задачи новая,
+// то меняем статус задачи на выполняется
+$event = [
+    'id_task'   => $id_task,
+    'id_action' => 15,
+    'comment'   => 'принял к выполнению',
+    'id_user'   => $id_user->getValue(),
+];
+$task->updateCondition($event);
+
+// запрашиваем детальную информацию о задаче
 $task_info = $task->getInfo($id_task);
 
 // выбор возможных действий зависит от текущего состояния задачи и роли пользователя в ней
