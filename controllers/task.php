@@ -18,6 +18,8 @@ function checkDt()
 
 $task = new \ssp\models\Task($db);
 
+$id_task = (int)$param[1];
+
 if (isset($_POST['submit'])) {
     
     $event = [
@@ -51,7 +53,36 @@ if (isset($_POST['submit'])) {
     }
 }
 
-$id_task = (int)$param[1];
+// обработка загрузки файла
+$uploads = new \ssp\models\Doks($db);
+
+if (isset($_POST['upload'])) {
+    // todo
+    // сделать константу
+    $uploaddir = 'attachdoks/' . $id_task;
+
+    if (!file_exists($uploaddir)) {
+        mkdir($uploaddir);
+    }
+
+    foreach ($_FILES['userfile']['error'] as $key => $error) {
+        if ($error == UPLOAD_ERR_OK) {
+            $tmp_name = $_FILES['userfile']['tmp_name'][$key];
+            // basename() может спасти от атак на файловую систему;
+            // может понадобиться дополнительная проверка/очистка имени файла
+            $name = basename($_FILES['userfile']['name'][$key]);
+            if (move_uploaded_file($tmp_name, "${uploaddir}/${name}")) {
+                $uploads->addDok($id_task, $id_user->getValue(), $name);
+            }
+        }
+    }
+
+    // todo
+    // для предотвращения сообщения при обновлении страницы, можно сделать перенаправление
+}
+
+// получаем список файлов приклипленных к этой задаче
+$upload_doks = $uploads->getList($id_task);
 
 // если для данной задачи пользователь является исполнителем и состояние задачи новая,
 // то меняем статус задачи на выполняется
