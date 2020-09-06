@@ -30,6 +30,11 @@ Class Event
 
     function add($event)
     {
+        // возможно в массиве лишня переменная, которая выдаст ошибку при вставке
+        if (isset($event['penalty'])) {
+            unset($event['penalty']);
+        }
+
         if (isset($event['dt'])) {
             $query = 'insert into events (id_task, id_user, id_action, comment, dt_wish) values (:id_task, :id_user, :id_action, :comment, :dt)';
         } else {

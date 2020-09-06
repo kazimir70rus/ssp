@@ -69,8 +69,15 @@
         </select>
         
         <div v-if="show_dt">
-            <input type="date" name="dt" class="input input_text">
+            изменить дату переноса:<br>
+            <input type="date" name="dt" v-model="required_date" class="input input_text">
         </div>
+
+        <div v-if="show_penalty">
+            увеличить штрафные баллы на:<br>
+            <input type="number" name="penalty" value="0" class="input input_text">
+        </div>
+
         <div>
             Примечание:<br>
             <textarea name="comment" class="input" style="height: 5rem; max-width: 40rem;"></textarea><br>
@@ -106,30 +113,41 @@ var app = new Vue({
         actions: [],
         id_task: <?=$id_task?>,
         show_dt: false,
+        show_penalty: false,
+        required_date: '',
         id_action: '',
     },
     watch: {
         id_action: function () {
-            let found = false;
+            let need_dt = false;
+            let change_penalty = false;
             
+            // ищем выбранное действие в массиве, если нужно выводим поля для ввода
             for (let i = 0; i < this.actions.length; ++i) {
+
                 if (parseInt(this.id_action) == this.actions[i].id_action) {
+
                     if (this.actions[i].need_dt == 1) {
-                        found = true;
-                        break;
+                        need_dt = true;
+                        // todo
+                        // возможно имеет смысл вставить запрашиваемую дату переноса
+                        this.getRequiredDate();
                     }
+
+                    if (this.actions[i].change_penalty == 1) {
+                        change_penalty = true;
+                    }
+                    // дальше искать не нужно
+                    break;
                 }
             }
 
-            if (found) {
-                this.show_dt = true;
-            } else {
-                this.show_dt = false;
-            }
+            this.show_dt = need_dt;
+            this.show_penalty = change_penalty;
         },
     },
     methods: {
-        getActions: function(id) {
+        getActions: function() {
             this.$http.get(this.server + 'getactions/' + this.id_task).then(
                 function (otvet) {
                     this.actions = otvet.data;
@@ -139,9 +157,19 @@ var app = new Vue({
                 }
             );
         },
+        getRequiredDate: function() {
+            this.$http.get(this.server + 'getreqdt/' + this.id_task).then(
+                function (otvet) {
+                    this.required_date = otvet.data.dt_wish;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
     },
     created: function() {
-        this.getActions(1);
+        this.getActions();
     }
 });
 

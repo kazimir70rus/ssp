@@ -154,11 +154,11 @@ Class Task
 
     function getAction($id_task, $id_user)
     {
-        // узнаем роль пользователя в задаче
+        // возыращает сведения о возможных действиях над этой задачей этим пользователем
 
         $query = '
             select
-                id_action, name, need_dt
+                id_action, name, need_dt, change_penalty
             from
                 enable_actions join actions using (id_action)
             where
@@ -196,6 +196,11 @@ Class Task
             // если id_action = 5, то вставляем последнюю дату из истории
             if ($event['id_action'] == 5) {
                 $this->changeDateEnd($event['id_task']);
+            }
+
+            // разрешить перенос, изменим штрафные баллы
+            if ($event['id_action'] == 3) {
+                $this->changePenalty($event['id_task'], $event['penalty']);
             }
 
             if ($event['id_action'] == 12) {
@@ -255,6 +260,24 @@ Class Task
                 id_task = :id_task';
 
         return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+
+
+    // запрашиваем желаемую дату переноса
+    function getRequiredDate($id_task)
+    {
+        $query = '  select
+                        dt_wish
+                    from
+                        events
+                    where
+                        id_task = :id_task
+                        and dt_wish is not null
+                    order by
+                        id_event desc
+                    limit 1';
+
+        return $this->db->getRow($query, ['id_task' => $id_task]);
     }
 
 
@@ -403,5 +426,19 @@ Class Task
                         and id_user = :id_user';
         
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+    }
+
+
+    // увеличиваем кол-во штрафных баллов
+    function changePenalty($id_task, $penalty)
+    {
+        $query = '  update
+                        tasks
+                    set
+                        penalty = penalty + :penalty
+                    where
+                        id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task, 'penalty' => $penalty]);
     }
 }

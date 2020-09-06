@@ -27,6 +27,10 @@ if (isset($_POST['submit'])) {
         'id_user'   => $id_user->getValue(),
     ];
 
+    if (isset($_POST['penalty'])) {
+        $event['penalty'] = (int)$_POST['penalty'];
+    }
+
     $dt = checkDt();
 
     if (strlen($dt) > 1) {
@@ -69,3 +73,4 @@ $list_actions = $task->getAction($id_task, $id_user->getValue());
 $history_actions = $task->getHistoryActions($id_task);
 
 require_once 'views/task.php';
+
