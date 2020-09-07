@@ -88,6 +88,20 @@
 <br>
 <div>
     <table>
+    <caption>загруженные документы</caption>
+    <?php foreach ($upload_doks as $dok) { ?>
+        <tr>
+            <td><a href="<?=BASE_URL?>attachdoks/<?=$id_task?>/<?=$dok['filename']?>"><?=$dok['filename']?></a></td>
+        </tr>    
+    <?php } ?>
+    </table>
+    <form enctype="multipart/form-data" action="" method="post">
+        <input type="file" name="userfile[]" class="input input_text" required><br>
+        <input type="submit" name="upload" value="Добавить файл" class="input input_button">
+    </form>
+</div>
+<div>
+    <table>
     <caption>история изменений</caption>
     <?php foreach ($history_actions as $event) { ?>
         <tr>
@@ -101,20 +115,6 @@
     </table>
 </div>
 <br>
-<div>
-    <table>
-    <caption>загруженные документы</caption>
-    <?php foreach ($upload_doks as $dok) { ?>
-        <tr>
-            <td><a href="<?=BASE_URL?>attachdoks/<?=$id_task?>/<?=$dok['filename']?>"><?=$dok['filename']?></a></td>
-        </tr>    
-    <?php } ?>
-    </table>
-    <form enctype="multipart/form-data" action="" method="post">
-        <input type="file" name="userfile[]" class="input input_text" required><br>
-        <input type="submit" name="upload" value="Добавить файл" class="input input_button">
-    </form>
-</div>
 <script src="<?=BASE_URL?>js/vue.min.js"></script>
 <script src="<?=BASE_URL?>js/vue-resource.min.js"></script>
 

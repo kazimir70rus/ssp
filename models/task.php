@@ -63,7 +63,7 @@ Class Task
             return false;
         } else {
             $this->db->commit();
-            return true;
+            return $id_task;
         }
     }
 

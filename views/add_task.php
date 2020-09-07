@@ -9,7 +9,9 @@
 
 <?php require_once 'logout.html'; ?>
 
-    <form method="post">
+<div id="app">
+
+    <form enctype="multipart/form-data" action="" method="post">
 
         <div style="display: flex;">
 
@@ -68,13 +70,70 @@
                 <br>
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" value="0" required class="input input_text">
-                <br>
+                <div>
+                    <input type="file" name="userfile[]" v-model="name1" class="input input_text">
+                </div>
+                <div v-if="file2">
+                    <input type="file" name="userfile[]" v-model="name2" class="input input_text">
+                </div>
+                <div v-if="file3">
+                    <input type="file" name="userfile[]" v-model="name3" class="input input_text">
+                </div>
+                <div v-if="file4">
+                    <input type="file" name="userfile[]" v-model="name4" class="input input_text">
+                </div>
+                <div v-if="file5">
+                    <input type="file" name="userfile[]" class="input input_text">
+                </div>
                 <input type="submit" name="submit" value="Добавить" class="input input_button">
             </div>
 
         </div>
 
     </form>
+</div>
 
+<script src="<?=BASE_URL?>js/vue.min.js"></script>
+<script src="<?=BASE_URL?>js/vue-resource.min.js"></script>
+
+<script>
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        file2: false,
+        file3: false,
+        file4: false,
+        file5: false,
+        name1: '',
+        name2: '',
+        name3: '',
+        name4: '',
+    },
+    watch: {
+        name1: function () {
+            if (this.name1 != '') {
+                this.file2 = true;
+            }
+        },
+        name2: function () {
+            if (this.name2 != '') {
+                this.file3 = true;
+            }
+        },
+        name3: function () {
+            if (this.name3 != '') {
+                this.file4 = true;
+            }
+        },
+        name4: function () {
+            if (this.name4 != '') {
+                this.file5 = true;
+            }
+        },
+    },
+});
+
+</script>
 </body>
 </html>
