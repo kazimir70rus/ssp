@@ -70,21 +70,27 @@
                 <br>
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" value="0" required class="input input_text">
+
                 <div>
                     <input type="file" name="userfile[]" v-model="name1" class="input input_text">
+                    <button type="button" v-on:click="clear1()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button>
                 </div>
+
                 <div v-if="file2">
                     <input type="file" name="userfile[]" v-model="name2" class="input input_text">
+                    <button type="button" v-on:click="clear2()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button>
                 </div>
+
                 <div v-if="file3">
                     <input type="file" name="userfile[]" v-model="name3" class="input input_text">
+                    <button type="button" v-on:click="clear3()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button>
                 </div>
+
                 <div v-if="file4">
                     <input type="file" name="userfile[]" v-model="name4" class="input input_text">
+                    <button type="button" v-on:click="clear4()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button>
                 </div>
-                <div v-if="file5">
-                    <input type="file" name="userfile[]" class="input input_text">
-                </div>
+
                 <input type="submit" name="submit" value="Добавить" class="input input_button">
             </div>
 
@@ -101,35 +107,68 @@
 var app = new Vue({
     el: '#app',
     data: {
-        file2: false,
-        file3: false,
-        file4: false,
-        file5: false,
         name1: '',
         name2: '',
         name3: '',
         name4: '',
+        file2: false,
+        file3: false,
+        file4: false,
     },
     watch: {
         name1: function () {
             if (this.name1 != '') {
                 this.file2 = true;
+            } else if (this.name2 == '') {
+                this.file2 = false;
             }
         },
         name2: function () {
             if (this.name2 != '') {
                 this.file3 = true;
+            } else {
+                if (this.name3 == '') {
+                    this.file3 = false;
+                }
+
+                if (this.name1 == '') {
+                    this.file2 = false;
+                }
             }
         },
         name3: function () {
             if (this.name3 != '') {
                 this.file4 = true;
+            } else {
+                if (this.name4 == '') {
+                    this.file4 = false;
+                }
+
+                if (this.name2 == '') {
+                    this.file3 = false;
+                }
             }
         },
         name4: function () {
-            if (this.name4 != '') {
-                this.file5 = true;
+            if (this.name3 == '') {
+                if (this.name3 == '') {
+                    this.file4 = false;
+                }
             }
+        },
+    },
+    methods: {
+        clear1: function () {
+            this.name1 = '';
+        },
+        clear2: function () {
+            this.name2 = '';
+        },
+        clear3: function () {
+            this.name3 = '';
+        },
+        clear4: function () {
+            this.name4 = '';
         },
     },
 });

@@ -84,35 +84,36 @@
             <input type="submit" name="submit" value="Подтвердить" class="input input_button">
         </div>
     </form>
-</div>
-<br>
-<div>
-    <table>
-    <caption>загруженные документы</caption>
-    <?php foreach ($upload_doks as $dok) { ?>
-        <tr>
-            <td><a href="<?=BASE_URL?>attachdoks/<?=$id_task?>/<?=$dok['filename']?>"><?=$dok['filename']?></a></td>
-        </tr>    
-    <?php } ?>
-    </table>
-    <form enctype="multipart/form-data" action="" method="post">
-        <input type="file" name="userfile[]" class="input input_text" required><br>
-        <input type="submit" name="upload" value="Добавить файл" class="input input_button">
-    </form>
-</div>
-<div>
-    <table>
-    <caption>история изменений</caption>
-    <?php foreach ($history_actions as $event) { ?>
-        <tr>
-            <td><?=$event['dt_create']?></td>
-            <td><?=$event['user']?></td>
-            <td><?=$event['action']?></td>
-            <td><?=$event['dt_wish']?></td>
-            <td><?=$event['comment']?></td>
-        </tr>    
-    <?php } ?>
-    </table>
+    <br>
+    <div>
+        <table>
+        <caption>загруженные документы</caption>
+            <template v-for="dok in upload_files">
+                <tr>
+                    <td><a v-bind:href="'<?=BASE_URL?>attachdoks/<?=$id_task?>/' + dok.filename">{{dok.filename}}</a></td>
+                </tr>
+            </template>
+        </table>
+        <form enctype="multipart/form-data" action="" method="post">
+            <input type="file" name="userfile[]" class="input input_text" v-model="name" required>
+            <button type="button" v-on:click="clear()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button><br>
+            <input type="submit" name="upload" value="Добавить файл" class="input input_button">
+        </form>
+    </div>
+    <div>
+        <table>
+        <caption>история изменений</caption>
+        <?php foreach ($history_actions as $event) { ?>
+            <tr>
+                <td><?=$event['dt_create']?></td>
+                <td><?=$event['user']?></td>
+                <td><?=$event['action']?></td>
+                <td><?=$event['dt_wish']?></td>
+                <td><?=$event['comment']?></td>
+            </tr>    
+        <?php } ?>
+        </table>
+    </div>
 </div>
 <br>
 <script src="<?=BASE_URL?>js/vue.min.js"></script>
@@ -130,6 +131,8 @@ var app = new Vue({
         show_penalty: false,
         required_date: '',
         id_action: '',
+        name: '',
+        upload_files: [],
     },
     watch: {
         id_action: function () {
@@ -181,9 +184,23 @@ var app = new Vue({
                 }
             );
         },
+        clear: function () {
+            this.name = '';
+        },
+        getListFiles: function () {
+            this.$http.get(this.server + 'getlistfiles/' + this.id_task).then(
+                function (otvet) {
+                    this.upload_files = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
     },
     created: function() {
         this.getActions();
+        this.getListFiles();
     }
 });
 
