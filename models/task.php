@@ -68,11 +68,11 @@ Class Task
     }
 
 
-    function getListTip($id_user, $id_tip, $limit = 10)
+    function getListTip($id_user, $id_tip, $limit = 30)
     {
         $query = '
                   select 
-                    id_task, tasks.name as name, data_end, conditions.name as `condition`
+                    id_task, tasks.name as name, data_end, conditions.name as `condition`, tasks.id_condition as id_condition
                   from 
                     task_users join tasks using (id_task) join conditions using (id_condition)
                   where 
@@ -84,11 +84,11 @@ Class Task
     }
 
 
-    function getTaskForControl($id_user, $limit = 10)
+    function getTaskForControl($id_user, $limit = 30)
     {
         $query = " 
                   select distinct
-                    id_task, tasks.name as name, data_end, if(tasks.id_condition = 1, '', conditions.name) as `condition`
+                    id_task, tasks.name as name, data_end, conditions.name as `condition`, tasks.id_condition as id_condition
                   from 
                     task_users join tasks using (id_task) join conditions using (id_condition)
                   where 
@@ -137,7 +137,8 @@ Class Task
                         data_client,
                         if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
                         c.name as state,
-                        penalty
+                        penalty,
+                        charges_penalty
                     from
                         tasks
                         join conditions as c using (id_condition)
@@ -195,7 +196,10 @@ Class Task
             // изменение параметров задачи
             // если id_action = 5, то вставляем последнюю дату из истории
             if ($event['id_action'] == 5) {
-                $this->changeDateEnd($event['id_task']);
+                // нужно узнать на какую дату перенести
+                $dt = $this->getRequiredDate($event['id_task']);
+                // переносим
+                $this->changeDateEnd($event['id_task'], $dt['dt_wish']);
             }
 
             // разрешить перенос, изменим штрафные баллы
@@ -240,26 +244,16 @@ Class Task
 
 
     // изменяем срок завершения задачи
-    function changeDateEnd($id_task)
+    function changeDateEnd($id_task, $dt_end)
     {
         $query = '
             update tasks
-                set data_end = (
-                    select
-                        dt_wish
-                    from
-                        events
-                    where
-                        id_task = :id_task
-                        and dt_wish is not null
-                    order by
-                        id_event desc
-                    limit 1
-                )
+                set data_end = :dt_end
             where
-                id_task = :id_task';
+                id_task = :id_task 
+                and data_end != :dt_end';
 
-        return $this->db->updateData($query, ['id_task' => $id_task]);
+        return $this->db->updateData($query, ['id_task' => $id_task, 'dt_end' => $dt_end]);
     }
 
 
@@ -441,4 +435,59 @@ Class Task
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'penalty' => $penalty]);
     }
+
+
+    // сдвигает просроченную задачу, с начислением штрафных баллов
+    function moveExpiredTask($id_task, $new_dt_end)
+    {
+        // т.к. будем менять данные в нескольких используем транзакции
+        $this->db->beginTransaction();
+        $result = false;
+
+        // начислить штрафы
+        if ($this->accruePenalty($id_task)) {
+            // перенести задачу
+
+            if ($this->changeDateEnd($id_task, $new_dt_end) > 0) {
+
+                // создаем событие "перенос просроченной задачи" (18) админом (11)
+                $event = [
+                    'id_task'   => $id_task,
+                    'id_action' => 18,
+                    'comment'   => '',
+                    'id_user'   => 11,
+                ];
+                
+                $events = new \ssp\models\Event($this->db);
+
+                // записать событие
+                if ($events->add($event) > 0) {
+                    $result = true;
+                }
+            }
+        }
+        // завершаем транзакцию
+        if ($result) {
+            $this->db->commit();
+            return true;
+        } else {
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+
+    // начисление штрафных баллов
+    function accruePenalty($id_task)
+    {
+        $query = '  update
+                        tasks
+                    set
+                        charges_penalty = charges_penalty + penalty
+                    where
+                        id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
 }
+

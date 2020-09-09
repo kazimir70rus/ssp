@@ -52,8 +52,8 @@
             <td><?=$task_info['penalty']?></td>
         </tr>
         <tr>
-            <td>Статус:</td>
-            <td><?=$task_info['primet']?></td>
+            <td>Начисленные баллы:</td>
+            <td><?=$task_info['charges_penalty']?></td>
         </tr>
         <tr>
             <td>Состояние:</td>
