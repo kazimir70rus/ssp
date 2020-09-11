@@ -52,6 +52,7 @@ function task_out($tasks, $header)
         echo '<th style="width: 6rem">срок</th>';
         echo '<th>задача</th>';
         echo '<th style="width: 25rem">состояние</th>';
+        echo '<th style="width: 2rem">Ш</th>';
         echo '</tr>';
         foreach ($tasks as $task) {
             echo '<tr>';
@@ -60,6 +61,7 @@ function task_out($tasks, $header)
             echo $task['name'];
             echo '</a></td>';
             echo "<td>{$task['condition']}</td>";
+            echo "<td>{$task['charges_penalty']}</td>";
             echo '</tr>';
         }
         echo '</table>';

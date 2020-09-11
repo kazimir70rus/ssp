@@ -68,31 +68,28 @@ Class Task
     }
 
 
-    function getListTip($id_user, $id_tip, $limit = 30)
+    // формирует список задач для главной странице
+    function getTasksForControl($id_user, $executor = false)
     {
+        $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
         $query = '
-                  select 
-                    id_task, tasks.name as name, data_end, conditions.name as `condition`, tasks.id_condition as id_condition
-                  from 
-                    task_users join tasks using (id_task) join conditions using (id_condition)
-                  where 
-                    id_user = :id_user and id_tip = :id_tip order by data_end desc limit ' . $limit;
-
-        return $this
-                    ->db
-                    ->getList($query, ['id_user' => $id_user, 'id_tip' => $id_tip]);
-    }
-
-
-    function getTaskForControl($id_user, $limit = 30)
-    {
-        $query = " 
                   select distinct
-                    id_task, tasks.name as name, data_end, conditions.name as `condition`, tasks.id_condition as id_condition
+                    id_task, 
+                    tasks.name as name, 
+                    data_end, 
+                    conditions.name as `condition`, 
+                    tasks.id_condition as id_condition, 
+                    charges_penalty
                   from 
-                    task_users join tasks using (id_task) join conditions using (id_condition)
+                    task_users 
+                    join tasks using (id_task) 
+                    join conditions using (id_condition)
                   where 
-                    id_user = :id_user and id_tip != 1 order by data_end desc limit " . $limit;
+                    id_user = :id_user 
+                    ' . $tip . ' 
+                  order by 
+                    data_end, 
+                    charges_penalty desc';
 
         return $this
                     ->db
@@ -100,7 +97,7 @@ Class Task
     }
 
 
-    function getList($id_executor)
+    function getList_delete($id_executor)
     {
         $query = 'select id_task, name, id_author from tasks where id_executor = :id_executor';
 
@@ -488,6 +485,46 @@ Class Task
                         id_task = :id_task';
 
         return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+    
+
+    //ищет просроченные задачи у заданного пользователя и переносит их
+    function checkExpired($id_user)
+    {
+        $query = 'select distinct 
+                    id_task, 
+                    data_end, 
+                    id_condition 
+                  from 
+                    task_users 
+                    join tasks using (id_task) 
+                  where 
+                    id_user = :id_user';
+
+        $list_tasks = $this->db->getList($query, ['id_user' => $id_user]);
+
+        $dt_now = \DateTime::createFromFormat('Y-m-d H:i', date('Y-m-d H:i'));
+
+        foreach ($list_tasks as $one_task) {
+            // просмотриваем задачи в состоянии "выполняется" и "новая"
+            if (((int)$one_task['id_condition'] == 1) || ((int)$one_task['id_condition'] == 9)) {
+                $dt_end = \DateTime::createFromFormat('Y-m-d H:i', $one_task['data_end'] . ' 00:00');
+                $dt_end->add(new \DateInterval('P1DT8H'));
+
+                if ($dt_end < $dt_now) {
+                    // задача просрочена
+
+                    // вычисляем разницу
+                    $interval = date_diff($dt_end, $dt_now);
+                    $interval_in_days = (int)$interval->format('%r%a');
+
+                    for ($i = 0; $i <= $interval_in_days; ++$i) {
+                        $this->moveExpiredTask($one_task['id_task'], $dt_end->format('Y-m-d'));
+                        $dt_end->add(new \DateInterval('P1D'));
+                    }
+                }
+            }
+        }
     }
 }
 
