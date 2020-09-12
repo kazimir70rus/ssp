@@ -142,7 +142,7 @@ Class Task
                         if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
                         c.name as state,
                         penalty,
-                        charges_penalty
+                        (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty
                     from
                         tasks
                         join conditions as c using (id_condition)
