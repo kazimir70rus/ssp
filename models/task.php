@@ -69,10 +69,12 @@ Class Task
 
 
     // формирует список задач для главной странице
-    function getTasksForControl($id_user, $executor = false)
+    function getTasksForControl($id_user, $executor = false, $seek_str)
     {
         // проверим просроченный задачи
         $this->checkExpired($id_user);
+
+        $seek_str = '%' . $seek_str . '%';
 
         $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
         $query = 'select distinct
@@ -97,13 +99,14 @@ Class Task
                   where 
                     id_user = :id_user 
                     ' . $tip . ' 
+                    and tasks.name like :seek_str
                   order by 
                     data_end, 
                     charges_penalty desc';
 
         return $this
                     ->db
-                    ->getList($query, ['id_user' => $id_user]);
+                    ->getList($query, ['id_user' => $id_user, 'seek_str' => $seek_str]);
     }
 
 

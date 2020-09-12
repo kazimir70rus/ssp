@@ -46,6 +46,8 @@
 <div id="app">
     <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
 
+    <input type="text" v-model="seek_str" class="input input_text">
+
     <table v-if="tasks_for_exe.length">
         <caption>задачи к выполнению</caption>
         <tr>
@@ -102,10 +104,19 @@ var app = new Vue({
         server: '<?=BASE_URL?>',
         tasks_for_exe: [],
         tasks_for_ctr: [],
+        seek_str: '',
+    },
+    watch: {
+        seek_str: function () {
+            if (this.seek_str.length > 3) {
+                this.getListTasksExe(this.seek_str);
+                this.getListTasksCtr(this.seek_str);
+            }
+        },
     },
     methods: {
-        getListTasksExe: function () {
-            this.$http.get(this.server + 'getlisttasks/1').then(
+        getListTasksExe: function (seek_str) {
+            this.$http.get(this.server + 'getlisttasks/1/' + seek_str).then(
                 function (otvet) {
                     this.tasks_for_exe = otvet.data;
                 },
@@ -114,8 +125,8 @@ var app = new Vue({
                 }
             );
         },
-        getListTasksCtr: function () {
-            this.$http.get(this.server + 'getlisttasks/0').then(
+        getListTasksCtr: function (seek_str) {
+            this.$http.get(this.server + 'getlisttasks/0/' + seek_str).then(
                 function (otvet) {
                     this.tasks_for_ctr = otvet.data;
                 },
@@ -127,10 +138,10 @@ var app = new Vue({
     },
     created: function() {
         // список задач к выполнению
-        this.getListTasksExe();
+        this.getListTasksExe('');
 
         // список задач для контроля
-        this.getListTasksCtr();
+        this.getListTasksCtr('');
     }
 });
 
