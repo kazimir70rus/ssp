@@ -71,6 +71,9 @@ Class Task
     // формирует список задач для главной странице
     function getTasksForControl($id_user, $executor = false)
     {
+        // проверим просроченный задачи
+        $this->checkExpired($id_user);
+
         $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
         $query = 'select distinct
                     id_task,

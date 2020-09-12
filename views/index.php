@@ -41,57 +41,99 @@
 </head>
 <body>
 
-<?php require_once 'logout.html';
+<?php require_once 'logout.html'; ?>
 
-function task_out($tasks, $header)
-{
-    if (count($tasks)) {
-        echo '<table>';
-        echo "<caption>{$header}</caption>";
-        echo '<tr>';
-        echo '<th style="width: 6rem">срок</th>';
-        echo '<th>задача</th>';
-        echo '<th style="width: 25rem">состояние</th>';
-        echo '<th style="width: 2rem">Ш</th>';
-        echo '</tr>';
-        foreach ($tasks as $task) {
-            echo '<tr>';
-            echo "<td>{$task['data_end']}</td>";                    
-            echo '<td><a href="' . BASE_URL . 'task/' . $task['id_task'] . '">';
-            echo $task['name'];
-            echo '</a></td>';
-            echo "<td>{$task['condition']}</td>";
-            echo "<td>{$task['charges_penalty']}</td>";
-            echo '</tr>';
-        }
-        echo '</table>';
+<div id="app">
+    <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
+
+    <table v-if="tasks_for_exe.length">
+        <caption>задачи к выполнению</caption>
+        <tr>
+            <th style="width: 6rem">срок</th>
+            <th>задача</th>
+            <th style="width: 25rem">состояние</th>
+            <th style="width: 2rem">Ш</th>
+        </tr>
+        <template v-for="task in tasks_for_exe">
+            <tr>
+                <td>{{task.data_end}}</td>
+                <td>
+                    <a v-bind:href="'<?=BASE_URL?>task/' + task.id_task">
+                        {{task.name}}
+                    </a>
+                </td>
+                <td>{{task.condition}}</td>
+                <td>{{task.charges_penalty}}</td>
+            </tr>
+        </template>
+    </table>
+
+    <table v-if="tasks_for_ctr.length">
+        <caption>задачи на контролe</caption>
+        <tr>
+            <th style="width: 6rem">срок</th>
+            <th>задача</th>
+            <th style="width: 25rem">состояние</th>
+            <th style="width: 2rem">Ш</th>
+        </tr>
+        <template v-for="task in tasks_for_ctr">
+            <tr>
+                <td>{{task.data_end}}</td>
+                <td>
+                    <a v-bind:href="'<?=BASE_URL?>task/' + task.id_task">
+                        {{task.name}}
+                    </a>
+                </td>
+                <td>{{task.condition}}</td>
+                <td>{{task.charges_penalty}}</td>
+            </tr>
+        </template>
+    </table>
+</div>
+
+<script src="<?=BASE_URL?>js/vue.min.js"></script>
+<script src="<?=BASE_URL?>js/vue-resource.min.js"></script>
+
+<script>
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        server: '<?=BASE_URL?>',
+        tasks_for_exe: [],
+        tasks_for_ctr: [],
+    },
+    methods: {
+        getListTasksExe: function () {
+            this.$http.get(this.server + 'getlisttasks/1').then(
+                function (otvet) {
+                    this.tasks_for_exe = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        getListTasksCtr: function () {
+            this.$http.get(this.server + 'getlisttasks/0').then(
+                function (otvet) {
+                    this.tasks_for_ctr = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+    },
+    created: function() {
+        // список задач к выполнению
+        this.getListTasksExe();
+
+        // список задач для контроля
+        this.getListTasksCtr();
     }
-}
+});
 
-?>
-    <br>
-
-    <a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a>
-
-    <br>    
-    <br>    
-
-    <div>
-        <?php
-            $header = 'задачи к выполнению';
-            task_out($list_tasks_executor, $header);
-        ?>    
-    </div>
-
-    <br>    
-    <br>    
-
-    <div>
-        <?php
-            $header = 'задачи на контролe';
-            task_out($list_tasks_for_control, $header);
-        ?>    
-    </div>
-     
+</script>
 </body>
 </html>
