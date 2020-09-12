@@ -72,9 +72,8 @@ Class Task
     function getTasksForControl($id_user, $executor = false)
     {
         $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
-        $query = '
-                  select distinct
-                    id_task, 
+        $query = 'select distinct
+                    id_task,
                     tasks.name as name, 
                     data_end, 
                     conditions.name as `condition`, 
@@ -83,6 +82,14 @@ Class Task
                   from 
                     task_users 
                     join tasks using (id_task) 
+                    left join (
+								select
+									id_task, sum(penalty) as charges_penalty
+								from
+									penaltys
+								group by
+									id_task
+                    ) as s_penalty using (id_task)
                     join conditions using (id_condition)
                   where 
                     id_user = :id_user 
@@ -474,15 +481,16 @@ Class Task
     }
 
 
-    // начисление штрафных баллов
+    // начисление штрафных баллов за просроченную задачу
+    // начисление производим на учетную запись исполнителя
     function accruePenalty($id_task)
     {
-        $query = '  update
-                        tasks
-                    set
-                        charges_penalty = charges_penalty + penalty
-                    where
-                        id_task = :id_task';
+        
+        $query = '  insert into penaltys (id_task, id_user, penalty)
+                    values (
+                        :id_task, 
+                        (select id_user from task_users where id_tip = 1 and id_task = :id_task), 
+                        (select penalty from tasks where id_task = :id_task))';
 
         return $this->db->updateData($query, ['id_task' => $id_task]);
     }
