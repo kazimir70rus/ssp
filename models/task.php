@@ -69,11 +69,20 @@ Class Task
 
 
     // формирует список задач для главной странице
-    function getTasksForControl($id_user, $executor = false, $seek_str)
+    function getTasksForControl($id_user, $executor, $seek_str)
     {
-        // проверим просроченный задачи
+        // проверим просроченные задачи
         $this->checkExpired($id_user);
 
+        // формируем строку-шаблон для поиска
+        $seek_str = trim($seek_str);
+
+        while (strpos($seek_str, '  ') !== false) {
+            $seek_str = str_replace('  ', ' ', $seek_str);
+        }
+
+        $seek_str_a = explode(' ', $seek_str);
+        $seek_str = implode('%', $seek_str_a);
         $seek_str = '%' . $seek_str . '%';
 
         $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
