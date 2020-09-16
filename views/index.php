@@ -47,7 +47,11 @@
     <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
 
     <input type="text" v-model="seek_str" class="input input_text">
-
+    <input type="radio" v-model="common_filter" value="1"> новые
+    <input type="radio" v-model="common_filter" value="2"> просроченные
+    <input type="radio" v-model="common_filter" value="3"> ожидают согласования
+    <input type="radio" v-model="common_filter" value="4"> завершенные и отмененные
+    <input type="radio" v-model="common_filter" value="5"> все, кроме завершенных и отмененных
     <table v-if="tasks_for_exe.length">
         <caption>задачи к выполнению</caption>
         <tr>
@@ -105,6 +109,7 @@ var app = new Vue({
         tasks_for_exe: [],
         tasks_for_ctr: [],
         seek_str: '',
+        common_filter: 5,
     },
     watch: {
         seek_str: function () {
@@ -113,10 +118,18 @@ var app = new Vue({
                 this.getListTasksCtr(this.seek_str);
             }
         },
+        common_filter: function () {
+            // список задач к выполнению
+            this.getListTasksExe();
+
+            // список задач для контроля
+            this.getListTasksCtr();
+        },
     },
     methods: {
-        getListTasksExe: function (seek_str) {
-            this.$http.get(this.server + 'getlisttasks/1/' + seek_str).then(
+        getListTasksExe: function () {
+            param = {'is_executor': 1, 'filter': this.common_filter, 'seek_str': this.seek_str};
+            this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
                     this.tasks_for_exe = otvet.data;
                 },
@@ -125,8 +138,9 @@ var app = new Vue({
                 }
             );
         },
-        getListTasksCtr: function (seek_str) {
-            this.$http.get(this.server + 'getlisttasks/0/' + seek_str).then(
+        getListTasksCtr: function () {
+            param = {'is_executor': 0, 'filter': this.common_filter, 'seek_str': this.seek_str};
+            this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
                     this.tasks_for_ctr = otvet.data;
                 },
@@ -138,10 +152,10 @@ var app = new Vue({
     },
     created: function() {
         // список задач к выполнению
-        this.getListTasksExe('');
+        this.getListTasksExe();
 
         // список задач для контроля
-        this.getListTasksCtr('');
+        this.getListTasksCtr();
     }
 });
 

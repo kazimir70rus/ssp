@@ -2,6 +2,10 @@
 
 namespace ssp\models;
 
+define('NEW_TASK', 9);
+define('TASK_CANCEL' , 7);
+define('TASK_END', 6);
+
 Class Task
 {
     private $db;
@@ -69,13 +73,13 @@ Class Task
 
 
     // формирует список задач для главной странице
-    function getTasksForControl($id_user, $executor, $seek_str)
+    function getTasksForControl($id_user, $data)
     {
         // проверим просроченные задачи
         $this->checkExpired($id_user);
 
         // формируем строку-шаблон для поиска
-        $seek_str = trim($seek_str);
+        $seek_str = trim($data['seek_str']);
 
         while (strpos($seek_str, '  ') !== false) {
             $seek_str = str_replace('  ', ' ', $seek_str);
@@ -85,7 +89,19 @@ Class Task
         $seek_str = implode('%', $seek_str_a);
         $seek_str = '%' . $seek_str . '%';
 
-        $tip = $executor ? 'and id_tip = 1' : 'and id_tip != 1';
+        switch ((int)$data['filter']) {
+            case 1:
+                $filter = ' and id_condition = ' . NEW_TASK;
+                break;
+            case 4:
+                $filter = ' and id_condition in (' . TASK_CANCEL . ', ' . TASK_END .') ';
+                break;
+            default:
+                $filter = ' and id_condition not in (' . TASK_CANCEL . ', ' . TASK_END .') ';
+                break;
+        }
+
+        $is_executor = (int)$data['is_executor'] ? ' and id_tip = 1 ' : ' and id_tip != 1 ';
         $query = 'select distinct
                     id_task,
                     tasks.name as name, 
@@ -107,7 +123,8 @@ Class Task
                     join conditions using (id_condition)
                   where 
                     id_user = :id_user 
-                    ' . $tip . ' 
+                    ' . $is_executor . ' 
+                    ' . $filter . ' 
                     and tasks.name like :seek_str
                   order by 
                     data_end, 
