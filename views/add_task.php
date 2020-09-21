@@ -21,53 +21,38 @@
             </div>
 
             <div>
-                Инициатор: <?=$name_user->getValue()?>
-                <input type="hidden" value="<?=$id_user->getValue()?>" name="iniciator">
+                Инициатор:<br>
+                <select v-model="iniciator" name="iniciator" class="input input-text">
+                    <option v-for="iniciator in iniciators" v-bind:value="iniciator.id_user">{{iniciator.name}}</option>
+                </select>
                 <br>
+                
                 Потребитель:<br>
+                <select v-model="client" name="client" class="input input-text" required>
+                    <option v-for="client in clients" v-bind:value="client.id_user">{{client.name}}</option>
+                </select>
+                <br>
 
-                <select name="client" required class="input input_text">
-                    <option selected value="<?=$id_user->getValue()?>"><?=$name_user->getValue()?></option>
-                    <?php
-                        foreach ($list_users as $user) {
-                            // по умолчанию инициатор является потребителем
-                            echo '<option value="' . $user['id_user'] . '">';
-                            echo $user["name"];
-                            echo '</option>';
-                        }
-                     ?>
-                </select>
-                <br>
                 Исполнитель:<br>
-                <select name="executor" required class="input input_text">
-                    <option value="">выберете исполнителя</option>
-                    <?php
-                        foreach ($list_users as $user) {
-                            echo '<option value="' . $user['id_user'] . '">';
-                            echo $user["name"];
-                            echo '</option>';
-                        }
-                     ?>
+                <select v-model="executor" name="executor" class="input input-text" required>
+                    <option v-for="executor in executors" v-bind:value="executor.id_user">{{executor.name}}</option>
                 </select>
                 <br>
+
                 Контролер:<br>
-                <select name="controller" required class="input input_text">
-                    <option value="">выберете контролера</option>
-                    <?php
-                        foreach ($list_controllers as $user) {
-                            echo '<option value="' . $user['id_user'] . '">';
-                            echo $user["name"];
-                            echo '</option>';
-                        }
-                     ?>
+                <select v-model="controller" name="controller" class="input input-text" required>
+                    <option v-for="controller in controllers" v-bind:value="controller.id_user">{{controller.name}}</option>
                 </select>
                 <br>
+
                 Дата начало:<br>
                 <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
+
                 Срок исполнения:<br>
                 <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
+
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" value="0" required class="input input_text">
 
@@ -107,6 +92,7 @@
 var app = new Vue({
     el: '#app',
     data: {
+        server: '<?=BASE_URL?>',
         name1: '',
         name2: '',
         name3: '',
@@ -114,8 +100,20 @@ var app = new Vue({
         file2: false,
         file3: false,
         file4: false,
+        iniciators: [],
+        iniciator: '',
+        executors: [],
+        executor: '',
+        controllers: [],
+        controller: '',
+        clients: [],
+        client: '',
     },
     watch: {
+        iniciator: function () {
+            this.getExecutors(this.iniciator);
+            this.getControllers(this.iniciator);
+        },
         name1: function () {
             if (this.name1 != '') {
                 this.file2 = true;
@@ -170,6 +168,80 @@ var app = new Vue({
         clear4: function () {
             this.name4 = '';
         },
+        getIniciators: function () {
+            this.$http.get(this.server + 'getiniciators').then(
+                function (otvet) {
+                    this.iniciators = otvet.data;
+                    this.iniciator = this.iniciators[0].id_user;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        getExecutors: function (iniciator) {
+            this.$http.get(this.server + 'getexecutors/' + iniciator).then(
+                function (otvet) {
+                    this.executors = otvet.data;
+
+                    // если исполнитель один его и выбираем в противном случае
+                    // выводим предложение о выборе
+                    if (this.executors.length > 1) {
+                        this.executors.unshift({name: 'выберите исполнителя', id_user: ''})
+                    }
+                    this.executor = this.executors[0].id_user;
+
+                    this.getClients(this.iniciator);
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        getControllers: function (iniciator) {
+            this.$http.get(this.server + 'getcontrollers/' + iniciator).then(
+                function (otvet) {
+                    this.controllers = otvet.data;
+
+                    // если исполнитель один его и выбираем в противном случае
+                    // выводим предложение о выборе
+                    if (this.controllers.length > 1) {
+                        this.controllers.unshift({name: 'выберите контроллера', id_user: ''})
+                    }
+                    this.controller = this.controllers[0].id_user;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        getIndex: function (value, massiv) {
+            for (let i = 0; i < massiv.length; ++i) {
+                if (massiv[i].id_user == value) {
+                    return i;
+                }
+            }
+
+            return '';
+        },
+        getClients: function (iniciator) {
+            // потребители выбираются из числа подчиненных плюс инициатор
+            this.$http.get(this.server + 'getexecutors/' + iniciator).then(
+                function (otvet) {
+                    this.clients = otvet.data;
+
+                    // по умолчанию инициатор является потребителем
+                    this.clients.unshift(this.iniciators[this.getIndex(this.iniciator, this.iniciators)]);
+                    this.client = this.clients[0].id_user;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+    },
+    created: function () {
+        this.getIniciators();
     },
 });
 

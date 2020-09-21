@@ -82,4 +82,19 @@ Class User
                     ->getList($query);
 
     }
+
+
+    // формирование списка возможных инициаторов, если пользователь контроллер, то возвращает его и начальника
+    function getIniciators($id_user) {
+        $query = '  select
+                        id_user, name
+                    from
+                        users
+                    where
+                        id_user in (
+                            :id_user, 
+                            (select id_parent from users where id_user = :id_user and is_controller = 1)
+                        )';
+        return $this->db->getList($query, ['id_user' => $id_user]);
+    }
 }
