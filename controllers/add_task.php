@@ -14,6 +14,8 @@ if (isset($_POST['submit'])) {
     $task_info['data_end']   = $_POST['data_end'];
     $task_info['penalty']    = (int)$_POST['penalty'];
     $task_info['author']     = $id_user->getValue();
+    $task_info['id_result']  = (int)$_POST['id_result'];
+    $task_info['id_report']  = (int)$_POST['id_report'];
 
     $task = new \ssp\models\Task($db);
 

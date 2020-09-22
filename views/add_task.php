@@ -55,6 +55,19 @@
 
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" value="0" required class="input input_text">
+                <br>
+
+                Вид результата:<br>
+                <select v-model="id_result" name="id_result" class="input input-text" required>
+                    <option v-for="res in type_results" v-bind:value="res.id_result">{{res.name}}</option>
+                </select>
+                <br>
+
+                Вид отчета:<br>
+                <select v-model="id_report" name="id_report" class="input input-text" required>
+                    <option v-for="rep in type_reports" v-bind:value="rep.id_report">{{rep.name}}</option>
+                </select>
+                <br>
 
                 <div>
                     <input type="file" name="userfile[]" v-model="name1" class="input input_text">
@@ -108,6 +121,10 @@ var app = new Vue({
         controller: '',
         clients: [],
         client: '',
+        type_results: [],
+        id_result: '',
+        type_report: [],
+        id_report: '',
     },
     watch: {
         iniciator: function () {
@@ -239,9 +256,29 @@ var app = new Vue({
                 }
             );
         },
+        getGuide: function () {
+            this.$http.get(this.server + 'gettyperesults/').then(
+                function (otvet) {
+                    this.type_results = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+
+            this.$http.get(this.server + 'gettypereports/').then(
+                function (otvet) {
+                    this.type_reports = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
     },
     created: function () {
         this.getIniciators();
+        this.getGuide();
     },
 });
 

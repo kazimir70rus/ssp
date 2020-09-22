@@ -22,9 +22,9 @@ Class Task
         $this->db->beginTransaction();
 
         $query = '  insert into tasks
-                        (name, id_author, data_begin, data_end, penalty)
+                        (name, id_author, data_begin, data_end, penalty, id_result, id_report)
                     values
-                        (:name, :author, :data_begin, :data_end, :penalty)';
+                        (:name, :author, :data_begin, :data_end, :penalty, :id_result, :id_report)';
 
         $id_task = $this
                         ->db
@@ -34,6 +34,8 @@ Class Task
                                                 'data_begin' => $task_info['data_beg'],
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
+                                                'id_result'  => $task_info['id_result'],
+                                                'id_report'  => $task_info['id_report'],
                                             ]);
 
         if ($id_task > 0) {
@@ -180,10 +182,14 @@ Class Task
                         if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
                         c.name as state,
                         penalty,
-                        (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty
+                        (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
+                        type_report.name as report_name,
+                        type_result.name as result_name
                     from
                         tasks
                         join conditions as c using (id_condition)
+                        left join type_report using (id_report)
+                        left join type_result using (id_result)
                     where
                         id_task = :id_task
                     order by

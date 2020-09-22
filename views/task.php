@@ -52,6 +52,14 @@
             <td><?=$task_info['penalty']?></td>
         </tr>
         <tr>
+            <td>Вид результата:</td>
+            <td><?=$task_info['result_name']?></td>
+        </tr>
+        <tr>
+            <td>Вид отчета:</td>
+            <td><?=$task_info['report_name']?></td>
+        </tr>
+        <tr>
             <td>Начисленные баллы:</td>
             <td><?=$task_info['charges_penalty']?></td>
         </tr>
