@@ -22,15 +22,14 @@ Class Task
         $this->db->beginTransaction();
 
         $query = '  insert into tasks
-                        (name, id_author, data_begin, data_end, penalty, id_result, id_report)
+                        (name, data_begin, data_end, penalty, id_result, id_report)
                     values
-                        (:name, :author, :data_begin, :data_end, :penalty, :id_result, :id_report)';
+                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report)';
 
         $id_task = $this
                         ->db
                         ->insertData($query, [
                                                 'name'       => $task_info['name'],
-                                                'author'     => $task_info['author'],
                                                 'data_begin' => $task_info['data_beg'],
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
@@ -46,7 +45,9 @@ Class Task
                             (:id_task, :id_executor, 1),
                             (:id_task, :id_client, 2),
                             (:id_task, :id_iniciator, 3),
-                            (:id_task, :id_controller, 4)';
+                            (:id_task, :id_controller, 4),
+                            (:id_task, :id_author, 5)
+                            ';
             $result = $this
                             ->db
                             ->insertData($query, [
@@ -54,6 +55,7 @@ Class Task
                                                     'id_iniciator'  => $task_info['iniciator'],
                                                     'id_client'     => $task_info['client'],
                                                     'id_controller' => $task_info['controller'],
+                                                    'id_author'     => $task_info['author'],
                                                     'id_task'       => $id_task,
                                                 ]);
 
