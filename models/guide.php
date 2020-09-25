@@ -14,11 +14,36 @@ Class Guide
 
 
     // возвращает список видов результата
-    function getTypeResults()
+    function getTypeResults($seek_str)
     {
-        $query = 'select id_result, name from type_result order by name';
+        $seek_str = htmlspecialchars(trim($seek_str));
 
-        return $this->db->getList($query);
+        while (strpos($seek_str, '  ') !== false) {
+            $seek_str = str_replace('  ', ' ', $seek_str);
+        }
+
+        $keywords = explode(' ', $seek_str);
+        $seek_str = implode('%', $keywords);
+        $seek_str = '%' . $seek_str . '%';
+
+        $query = 'select id_result, name from type_result where name like :seek_str order by name limit 5';
+
+        return $this->db->getList($query, ['seek_str' => $seek_str]);
+    }
+
+
+    // возвращает id вида результата
+    function getIdTypeResult($name)
+    {
+        $query = 'select id_result from type_result where name = :name';
+
+        $result = $this->db->getRow($query, ['name' => $name]);
+
+        if (is_array($result)) {
+            return $result['id_result'];
+        } else {
+            return $this->addResult($name);
+        }
     }
 
 

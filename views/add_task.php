@@ -58,8 +58,9 @@
                 <br>
 
                 Вид результата:<br>
-                <select v-model="id_result" name="id_result" class="input input-text" required>
-                    <option v-for="res in type_results" v-bind:value="res.id_result">{{res.name}}</option>
+                <input type="text" v-model="type_result" name="type_result" class="input input_text" autocomplete="off"><br>
+                <select v-if="res_visible" v-model="name_result" size="5" class="input" style="height: 90px" v-on:click="hide()">
+                    <option v-for="res in type_results" v-bind:value="res.name">{{res.name}}</option>
                 </select>
                 <br>
 
@@ -122,11 +123,20 @@ var app = new Vue({
         clients: [],
         client: '',
         type_results: [],
-        id_result: '',
-        type_report: [],
+        name_result: '',
+        type_result: '',
+        res_visible: false,
+        type_reports: [],
         id_report: '',
     },
     watch: {
+        type_result: function () {
+            if ((this.type_result.length > 1) && (this.type_result != this.name_result)) {
+                this.seek_type_result();
+            } else {
+                this.res_visible = false;
+            }
+        },
         iniciator: function () {
             this.getExecutors(this.iniciator);
             this.getControllers(this.iniciator);
@@ -257,15 +267,6 @@ var app = new Vue({
             );
         },
         getGuide: function () {
-            this.$http.get(this.server + 'gettyperesults/').then(
-                function (otvet) {
-                    this.type_results = otvet.data;
-                },
-                function (err) {
-                    console.log(err);
-                }
-            );
-
             this.$http.get(this.server + 'gettypereports/').then(
                 function (otvet) {
                     this.type_reports = otvet.data;
@@ -274,6 +275,26 @@ var app = new Vue({
                     console.log(err);
                 }
             );
+        },
+        seek_type_result: function () {
+            this.$http.get(this.server + 'gettyperesults/' + this.type_result).then(
+                function (otvet) {
+                    this.type_results = otvet.data;
+
+                    if (this.type_results.length > 0) {
+                        this.res_visible = true;
+                    } else {
+                        this.res_visible = false;
+                    }
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        hide: function() {
+            this.res_visible = false;
+            this.type_result = this.name_result;
         },
     },
     created: function () {
