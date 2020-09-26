@@ -69,7 +69,7 @@
         </tr>
     </table>
     <br>
-    <form method="post">
+    <form method="post" @submit="checkForm">
         <input type="hidden" name="id_task" value="<?=$id_task?>">
         <select v-model="id_action" name="id_action" required class="input input_text">
             <option value="">выберете действие</option>
@@ -88,7 +88,7 @@
 
         <div>
             Примечание:<br>
-            <textarea name="comment" class="input" style="height: 5rem; max-width: 40rem;"></textarea><br>
+            <textarea name="comment" class="input" v-model="comment" style="height: 5rem; max-width: 40rem;"></textarea><br>
             <input type="submit" name="submit" value="Подтвердить" class="input input_button">
         </div>
     </form>
@@ -141,6 +141,7 @@ var app = new Vue({
         id_action: '',
         name: '',
         upload_files: [],
+        comment: '',
     },
     watch: {
         id_action: function () {
@@ -154,7 +155,7 @@ var app = new Vue({
 
                     if (this.actions[i].need_dt == 1) {
                         need_dt = true;
-                        // todo
+
                         // возможно имеет смысл вставить запрашиваемую дату переноса
                         this.getRequiredDate();
                     }
@@ -172,6 +173,21 @@ var app = new Vue({
         },
     },
     methods: {
+        checkForm: function (e) {
+            if (
+                (this.id_action != 7) &&
+                (this.id_action != 6) &&
+                (this.id_action != 1)
+               ) {
+                return true;
+            }
+
+            if (this.comment.length > 10) {
+                return true;
+            }
+
+            e.preventDefault();
+        },
         getActions: function() {
             this.$http.get(this.server + 'getactions/' + this.id_task).then(
                 function (otvet) {

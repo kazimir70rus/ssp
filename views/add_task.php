@@ -11,7 +11,7 @@
 
 <div id="app">
 
-    <form enctype="multipart/form-data" action="" method="post">
+    <form enctype="multipart/form-data" action="" method="post" @submit="checkForm">
 
         <div style="display: flex;">
 
@@ -54,7 +54,7 @@
                 <br>
 
                 Штрафные баллы:<br>
-                <input type="number" name="penalty" value="0" required class="input input_text">
+                <input type="number" name="penalty" v-model="penalty" required class="input input_text">
                 <br>
 
                 Вид результата:<br>
@@ -128,6 +128,7 @@ var app = new Vue({
         res_visible: false,
         type_reports: [],
         id_report: '',
+        penalty: 1,
     },
     watch: {
         type_result: function () {
@@ -205,6 +206,13 @@ var app = new Vue({
                     console.log(err);
                 }
             );
+        },
+        checkForm: function (e) {
+            if (parseInt(this.penalty) > 0) {
+                return true;
+            }
+
+            e.preventDefault();
         },
         getExecutors: function (iniciator) {
             this.$http.get(this.server + 'getexecutors/' + iniciator).then(
