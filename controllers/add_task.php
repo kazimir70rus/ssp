@@ -4,6 +4,9 @@ $user = new \ssp\models\User($db);
 
 if (isset($_POST['submit'])) {
 
+    // todo
+    // проверка входных данных
+
     $task_info = [];
     $task_info['name']       = htmlspecialchars($_POST['task']);
     $task_info['executor']   = (int)$_POST['executor'];
@@ -11,7 +14,7 @@ if (isset($_POST['submit'])) {
     $task_info['client']     = (int)$_POST['client'];
     $task_info['controller'] = (int)$_POST['controller'];
     $task_info['data_beg']   = $_POST['data_beg'];
-    $task_info['data_end']   = $_POST['data_end'];
+    $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
     $task_info['penalty']    = (int)$_POST['penalty'];
     $task_info['author']     = $id_user->getValue();
     
