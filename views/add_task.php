@@ -45,10 +45,6 @@
                 </select>
                 <br>
 
-                Дата начало:<br>
-                <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
-                <br>
-
                 Срок исполнения:<br>
                 <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
                 <br>

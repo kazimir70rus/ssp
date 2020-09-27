@@ -14,15 +14,14 @@ if (isset($_POST['cancel'])) {
 if (isset($_POST['save'])) {
 
     $task_info = [];
-    $task_info['id_task']    = (int)$_POST['id_task'];
-    $task_info['name']       = htmlspecialchars($_POST['task']);
+    $task_info['id_task']       = (int)$_POST['id_task'];
+    $task_info['name']          = htmlspecialchars($_POST['task']);
     $task_info['id_executor']   = (int)$_POST['id_executor'];
     $task_info['id_client']     = (int)$_POST['id_client'];
     $task_info['id_controller'] = (int)$_POST['id_controller'];
-    $task_info['data_beg']   = $_POST['data_beg'];
-    $task_info['data_end']   = $_POST['data_end'];
-    $task_info['penalty']    = (int)$_POST['penalty'];
-    $task_info['id_user']    = $id_user->getValue();
+    $task_info['data_end']      = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
+    $task_info['penalty']       = (int)$_POST['penalty'];
+    $task_info['id_user']       = $id_user->getValue();
 
     $task->saveAfterEdit($task_info);
 

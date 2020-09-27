@@ -13,7 +13,6 @@ if (isset($_POST['submit'])) {
     $task_info['iniciator']  = (int)$_POST['iniciator'];
     $task_info['client']     = (int)$_POST['client'];
     $task_info['controller'] = (int)$_POST['controller'];
-    $task_info['data_beg']   = $_POST['data_beg'];
     $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
     $task_info['penalty']    = (int)$_POST['penalty'];
     $task_info['author']     = $id_user->getValue();

@@ -55,9 +55,6 @@
                      ?>
                 </select>
                 <br>
-                Дата начало:<br>
-                <input type="date" name="data_beg" value="<?=$task_info['data_begin']?>" required class="input input_text">
-                <br>
                 Срок исполнения:<br>
                 <input type="date" name="data_end" value="<?=$task_info['data_end']?>" required class="input input_text">
                 <br>
