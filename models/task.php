@@ -146,28 +146,6 @@ Class Task
     }
 
 
-    function getList_delete($id_executor)
-    {
-        $query = 'select id_task, name, id_author from tasks where id_executor = :id_executor';
-
-        return $this
-                    ->db
-                    ->getList($query, ['id_executor' => $id_executor]);
-    }
-
-
-    function getListAuthorTasks($id_author)
-    {
-        $query = 'select tasks.id_task, tasks.name, users.name as fio_executor, tasks.data_end from tasks, users
-                    where tasks.id_executor=users.id_user and tasks.id_author = :id_author
-                    order by tasks.data_end';
-
-        return $this
-                    ->db
-                    ->getList($query, ['id_author' => $id_author]);
-    }
-
-
     function getInfo($id_task)
     {
         $query = 'select
@@ -208,7 +186,7 @@ Class Task
         // возыращает сведения о возможных действиях над этой задачей этим пользователем
 
         $query = '
-            select
+            select distinct
                 id_action, name, need_dt, change_penalty
             from
                 enable_actions join actions using (id_action)
@@ -230,7 +208,7 @@ Class Task
                 set id_condition = (select id_condition from actions where id_action = :id_action)
             where
                 id_task = :id_task
-                and id_condition = 
+                and id_condition in 
                     (select id_condition from enable_actions where id_action = :id_action and id_tip in 
                         (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
 
@@ -243,6 +221,7 @@ Class Task
                                         ]);
         
         if ($result > 0) {
+
             // изменение параметров задачи
             // если id_action = 5, то вставляем последнюю дату из истории
             if ($event['id_action'] == 5) {
@@ -579,6 +558,24 @@ Class Task
                 }
             }
         }
+    }
+
+
+    // возвращает истину есть инициатор и потребитель одно лицо, и фальш в противном случае
+    function executorIsClient($id_task, $id_user)
+    {
+        $query = 'select count(id_user) as cnt from task_users
+            where id_task = :id_task and id_user = :id_user and id_tip in (2, 3)';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+
+        if ($result) {
+            if ((int)$result['cnt'] == 2) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
