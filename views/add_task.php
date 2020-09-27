@@ -17,7 +17,8 @@
 
             <div style="margin-right: 5rem;">
                 Задание:<br>
-                <textarea name="task" required class="input" style="height: 21rem; box-sizing: border-box;"></textarea>
+                <textarea name="task" required class="input" style="height: 21rem; box-sizing: border-box;"></textarea><br>
+                <input type="checkbox" v-model="periodic"> периодическая задача
             </div>
 
             <div>
@@ -43,6 +44,10 @@
                 <select v-model="controller" name="controller" class="input input-text" required>
                     <option v-for="controller in controllers" v-bind:value="controller.id_user">{{controller.name}}</option>
                 </select>
+                <br>
+
+                Дата начало:<br>
+                <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
 
                 Срок исполнения:<br>
@@ -89,6 +94,20 @@
                 <input type="submit" name="submit" value="Добавить" class="input input_button">
             </div>
 
+            <div v-if="periodic" style="flex-grow: 1">
+                Периодическая задача:<br>
+                с
+                <input type="date" name="1" class="input input_text">
+                по
+                <input type="date" name="2" class="input input_text"><br>
+                периодичность:<br>
+                <input type="radio" v-model="repetition" value="1"> ежедневно<br>
+                <input type="radio" v-model="repetition" value="2"> еженeдельно<br>
+                <input type="radio" v-model="repetition" value="3"> ежемесячно<br>
+                <input type="radio" v-model="repetition" value="4"> ежегодно<br>
+                <input type="radio" v-model="repetition" value="5"> через 
+                <input type="number" class="input input_text" style="width: 5rem;"> дней 
+            </div>
         </div>
 
     </form>
@@ -125,6 +144,8 @@ var app = new Vue({
         type_reports: [],
         id_report: '',
         penalty: 1,
+        periodic: 0,
+        repetition: 1,
     },
     watch: {
         type_result: function () {

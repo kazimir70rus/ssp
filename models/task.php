@@ -22,14 +22,15 @@ Class Task
         $this->db->beginTransaction();
 
         $query = '  insert into tasks
-                        (name, data_end, penalty, id_result, id_report)
+                        (name, data_begin, data_end, penalty, id_result, id_report)
                     values
-                        (:name, :data_end, :penalty, :id_result, :id_report)';
+                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report)';
 
         $id_task = $this
                         ->db
                         ->insertData($query, [
                                                 'name'       => $task_info['name'],
+                                                'data_begin' => $task_info['data_beg'],
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
                                                 'id_result'  => $task_info['id_result'],
@@ -149,6 +150,7 @@ Class Task
     {
         $query = 'select
                         data_end,
+                        data_begin,
                         id_task,
                         tasks.name as task_name,
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 1) as executor,
@@ -157,6 +159,7 @@ Class Task
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
                         data_execut,
                         data_client,
+                        if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
                         c.name as state,
                         penalty,
                         (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
@@ -331,7 +334,7 @@ Class Task
         // и только в сотоянии - новая
         $query = '
             select
-                name, data_end, penalty,
+                name, data_begin, data_end, penalty,
                 (select id_user from task_users where id_task = :id_task and id_tip = 1) as id_executor,
                 (select id_user from task_users where id_task = :id_task and id_tip = 2) as id_client,
                 (select id_user from task_users where id_task = :id_task and id_tip = 3) as id_iniciator,
@@ -372,6 +375,7 @@ Class Task
             update tasks join task_users using (id_task)
                 set id_condition = 9,
                 name = :name,
+                data_begin = :data_beg,
                 data_end = :data_end,
                 penalty = :penalty
             where
@@ -386,6 +390,7 @@ Class Task
                                                 'id_task'    => $task_info['id_task'],
                                                 'id_user'    => $task_info['id_user'],
                                                 'name'       => $task_info['name'],
+                                                'data_beg'   => $task_info['data_beg'],
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
                                              ]);
