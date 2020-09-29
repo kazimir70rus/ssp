@@ -16,7 +16,7 @@
             <td><?=$task_info['data_end']?></td>
         </tr>
         <tr>
-            <td>Дата начало:</td>
+            <td>Дата начала:</td>
             <td><?=$task_info['data_begin']?></td>
         </tr>
         <tr>

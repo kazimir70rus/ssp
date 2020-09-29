@@ -361,7 +361,7 @@ Class Task
                 id_task = :id_task
                 and id_condition = 10
                 and id_user = :id_user
-                and id_tip in (3)';
+                and id_tip in (5)';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -382,7 +382,7 @@ Class Task
                 id_task = :id_task
                 and id_condition = 10
                 and id_user = :id_user
-                and id_tip in (3)';
+                and id_tip in (5)';
 
         $result1 = $this
                         ->db

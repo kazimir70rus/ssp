@@ -97,4 +97,19 @@ Class User
                         )';
         return $this->db->getList($query, ['id_user' => $id_user]);
     }
+
+
+    // возвращает id инициатора у заданной задачи
+    function getIdIniciator($id_task)
+    {
+        $query = 'select id_user from task_users where id_tip = 3 and id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if (is_array($result)) {
+            return $result['id_user'];
+        }
+
+        return 0;
+    }
 }

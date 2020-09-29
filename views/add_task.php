@@ -18,7 +18,6 @@
             <div style="margin-right: 5rem;">
                 Задание:<br>
                 <textarea name="task" required class="input" style="height: 21rem; box-sizing: border-box;"></textarea><br>
-                <input type="checkbox" v-model="periodic"> периодическая задача
             </div>
 
             <div>
@@ -46,13 +45,6 @@
                 </select>
                 <br>
 
-                Дата начало:<br>
-                <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
-                <br>
-
-                Срок исполнения:<br>
-                <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
-                <br>
 
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" v-model="penalty" required class="input input_text">
@@ -94,19 +86,26 @@
                 <input type="submit" name="submit" value="Добавить" class="input input_button">
             </div>
 
-            <div v-if="periodic" style="flex-grow: 1">
-                Периодическая задача:<br>
-                с
-                <input type="date" name="1" class="input input_text">
-                по
-                <input type="date" name="2" class="input input_text"><br>
+            <div style="flex-grow: 1">
+                <div v-if="!enable_ends">
+                    Дата начала:<br>
+                    <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
+                </div>
+                Срок исполнения:<br>
+                <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
+                <br>
                 периодичность:<br>
-                <input type="radio" v-model="repetition" value="1"> ежедневно<br>
-                <input type="radio" v-model="repetition" value="2"> еженeдельно<br>
-                <input type="radio" v-model="repetition" value="3"> ежемесячно<br>
-                <input type="radio" v-model="repetition" value="4"> ежегодно<br>
-                <input type="radio" v-model="repetition" value="5"> через 
-                <input type="number" class="input input_text" style="width: 5rem;"> дней 
+                <input type="radio" v-model="repetition" value="1"> разовая<br>
+                <input type="radio" v-model="repetition" value="2"> ежедневно<br>
+                <input type="radio" v-model="repetition" value="3"> еженeдельно<br>
+                <input type="radio" v-model="repetition" value="4"> ежемесячно<br>
+                <input type="radio" v-model="repetition" value="5"> ежегодно<br>
+                <input type="radio" v-model="repetition" value="6"> через 
+                <input type="number" name="period" class="input input_text" style="width: 5rem;"> дней
+                <div v-if="enable_ends">
+                    повторять до:<br>
+                    <input type="date" name="date_to" class="input input_text">
+                </div>
             </div>
         </div>
 
@@ -144,10 +143,13 @@ var app = new Vue({
         type_reports: [],
         id_report: '',
         penalty: 1,
-        periodic: 0,
         repetition: 1,
+        enable_ends: false,
     },
     watch: {
+        repetition: function () {
+            this.enable_ends = this.repetition == '1' ? false : true;
+        },
         type_result: function () {
             if ((this.type_result.length > 1) && (this.type_result != this.name_result)) {
                 this.seek_type_result();

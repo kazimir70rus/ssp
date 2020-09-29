@@ -1,11 +1,23 @@
 <?php
 
+function createPeriodicTasks($repetition)
+{
+
+}
+
+
 $user = new \ssp\models\User($db);
 
 if (isset($_POST['submit'])) {
 
     // todo
     // проверка входных данных
+
+    $repetition = (int)$_POST['repetition'];
+
+    if ($repetition != 1) {
+        createPeriodicTasks($repetition);
+    }
 
     $task_info = [];
     $task_info['name']       = htmlspecialchars($_POST['task']);
