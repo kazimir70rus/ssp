@@ -95,12 +95,12 @@
                 <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
                 периодичность:<br>
-                <input type="radio" v-model="repetition" value="1"> разовая<br>
-                <input type="radio" v-model="repetition" value="2"> ежедневно<br>
-                <input type="radio" v-model="repetition" value="3"> еженeдельно<br>
-                <input type="radio" v-model="repetition" value="4"> ежемесячно<br>
-                <input type="radio" v-model="repetition" value="5"> ежегодно<br>
-                <input type="radio" v-model="repetition" value="6"> через 
+                <input type="radio" v-model="repetition" name="repetition" value="1"> разовая<br>
+                <input type="radio" v-model="repetition" name="repetition" value="2"> ежедневно<br>
+                <input type="radio" v-model="repetition" name="repetition" value="3"> еженeдельно<br>
+                <input type="radio" v-model="repetition" name="repetition" value="4"> ежемесячно<br>
+                <input type="radio" v-model="repetition" name="repetition" value="5"> ежегодно<br>
+                <input type="radio" v-model="repetition" name="repetition" value="6"> через 
                 <input type="number" name="period" class="input input_text" style="width: 5rem;"> дней
                 <div v-if="enable_ends">
                     повторять до:<br>

@@ -17,24 +17,25 @@ Class Task
     }
 
 
-    function add($task_info)
+    function add($task_info, $id_periodic = 0)
     {
         $this->db->beginTransaction();
 
         $query = '  insert into tasks
-                        (name, data_begin, data_end, penalty, id_result, id_report)
+                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic)
                     values
-                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report)';
+                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic)';
 
         $id_task = $this
                         ->db
                         ->insertData($query, [
-                                                'name'       => $task_info['name'],
-                                                'data_begin' => $task_info['data_beg'],
-                                                'data_end'   => $task_info['data_end'],
-                                                'penalty'    => $task_info['penalty'],
-                                                'id_result'  => $task_info['id_result'],
-                                                'id_report'  => $task_info['id_report'],
+                                                'name'        => $task_info['name'],
+                                                'data_begin'  => $task_info['data_beg'],
+                                                'data_end'    => $task_info['data_end'],
+                                                'penalty'     => $task_info['penalty'],
+                                                'id_result'   => $task_info['id_result'],
+                                                'id_report'   => $task_info['id_report'],
+                                                'id_periodic' => $id_periodic,
                                             ]);
 
         if ($id_task > 0) {
@@ -73,6 +74,40 @@ Class Task
             $this->db->commit();
             return $id_task;
         }
+    }
+
+
+    // добавляем в реест приодических задач
+    function addPeriodic($task_info)
+    {
+        $query = '  insert into periodic
+                        (id_author, id_iniciator, id_controller, id_executor, id_client, 
+                         name, date_from, date_to, penalty, id_result, id_report)
+                    values
+                        (:id_author, :id_iniciator, :id_controller, :id_executor, :id_client, 
+                         :name, :date_from, :date_to, :penalty, :id_result, :id_report)';
+
+        $result = $this
+                    ->db
+                    ->insertData($query, [
+                                            'id_author'     => $task_info['author'],
+                                            'id_iniciator'  => $task_info['iniciator'],
+                                            'id_controller' => $task_info['controller'],
+                                            'id_executor'   => $task_info['executor'],
+                                            'id_client'     => $task_info['client'],
+                                            'name'          => $task_info['name'],
+                                            'date_from'     => $task_info['date_from'],
+                                            'date_to'       => $task_info['date_to'],
+                                            'penalty'       => $task_info['penalty'],
+                                            'id_result'     => $task_info['id_result'],
+                                            'id_report'     => $task_info['id_report'],
+                                        ]);
+
+        if ($result < 1) {
+            error_log($this->db->errInfo[1]);
+        }
+        error_log('fdgdfgd');
+        return $result;
     }
 
 

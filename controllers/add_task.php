@@ -1,8 +1,71 @@
 <?php
 
-function createPeriodicTasks($repetition)
+function createPeriodicTasks($db, $repetition, $id_user)
 {
+    // формируем шаблон задачи
+    $guide = new \ssp\models\Guide($db);
+    $task = new \ssp\models\Task($db);
 
+    $task_template = [
+                        'author'     => $id_user,
+                        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
+                        'id_report'     => (int)$_POST['id_report'],
+                        'name'          => htmlspecialchars($_POST['task']),
+                        'penalty'       => (int)$_POST['penalty'],
+                        'executor'   => (int)$_POST['executor'],
+                        'iniciator'  => (int)$_POST['iniciator'],
+                        'client'     => (int)$_POST['client'],
+                        'controller' => (int)$_POST['controller'],
+                        'date_from'     => $_POST['data_end'],
+                        'date_to'       => $_POST['date_to'],
+                    ];
+
+    // записываем в таблицу периодических задач
+    $id_periodic = $task->addPeriodic($task_template);
+
+    // граница интервалов
+    $dt_st = \DateTime::createFromFormat('Y-m-d', $_POST['data_end']);
+    $dt_en = \DateTime::createFromFormat('Y-m-d', $_POST['date_to']);
+
+    // формируем строку для интервала
+    switch ((int)$_POST['repetition']) {
+        case 2:
+            $interval = 'P1D';
+            break;
+        case 3:
+            $interval = 'P7D';
+            break;
+        case 4:
+            $interval = 'P1M';
+            break;
+        case 5:
+            $interval = 'P1Y';
+            break;
+        case 6:
+            $days = isset($_POST['period']) ? (int)$_POST['period'] : 30;
+            $interval = 'P' . $days . 'D';
+            break;
+    }
+
+    $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
+
+    error_log('dt_st ' . $dt_curr->format('Y-m-d') . PHP_EOL);
+
+    while ($dt_curr <= $dt_en) {
+
+        $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+        $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+
+        // добавляем задачу
+        $id_task = $task->add($task_template, $id_periodic);
+
+        error_log('task ' . $id_task);
+
+        $dt_curr->add(new \DateInterval($interval));
+    }
+
+    header('Location: ' . BASE_URL);
+    exit;
 }
 
 
@@ -16,7 +79,7 @@ if (isset($_POST['submit'])) {
     $repetition = (int)$_POST['repetition'];
 
     if ($repetition != 1) {
-        createPeriodicTasks($repetition);
+        createPeriodicTasks($db, $repetition, $id_user->getValue());
     }
 
     $task_info = [];
