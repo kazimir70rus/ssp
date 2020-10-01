@@ -184,17 +184,16 @@ Class Task
     function getInfo($id_task)
     {
         $query = 'select
-                        data_end,
-                        data_begin,
+                        date_format(data_end, "%d-%m-%Y") as data_end,
+                        date_format(data_begin, "%d-%m-%Y") as data_begin,
                         id_task,
                         tasks.name as task_name,
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 1) as executor,
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 3) as iniciator,
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 2) as client,
                         (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
-                        data_execut,
-                        data_client,
-                        if(data_end<curdate() and data_execut is Null, "просрочено", "норм") as primet,
+                        date_format(data_execut, "%d-%m-%Y %H:%i") as data_execut,
+                        date_format(data_client, "%d-%m-%Y %H:%i") as data_client,
                         c.name as state,
                         penalty,
                         (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
@@ -341,25 +340,30 @@ Class Task
 
     function changeDateExec($id_task)
     {
+
+        $timestamp = date('Y-m-d H:i');
+
         $query = '
             update tasks
-                set data_execut = now()
+                set data_execut = :timestamp
             where
                 id_task = :id_task';
 
-        return $this->db->updateData($query, ['id_task' => $id_task]);
+        return $this->db->updateData($query, ['id_task' => $id_task, 'timestamp' => $timestamp]);
     }
 
 
     function changeDateClient($id_task)
     {
+        $timestamp = date('Y-m-d H:i');
+
         $query = '
             update tasks
-                set data_client = now()
+                set data_client = :timestamp
             where
                 id_task = :id_task';
 
-        return $this->db->updateData($query, ['id_task' => $id_task]);
+        return $this->db->updateData($query, ['id_task' => $id_task, 'timestamp' => $timestamp]);
     }
 
 
