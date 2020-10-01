@@ -154,7 +154,10 @@ Class Task
                     conditions.name as `condition`, 
                     tasks.id_condition as id_condition, 
                     charges_penalty,
-                    if(id_periodic = 0, "Р", "П") as periodicity
+                    if(id_periodic = 0, "Р", "П") as periodicity,
+                    (select name from task_users join users using (id_user)
+                       where id_tip = 1 and task_users.id_task = tasks.id_task
+                    ) as name_executor
                   from 
                     task_users 
                     join tasks using (id_task) 

@@ -82,6 +82,7 @@
             <th style="width: 1.5rem"></th>
             <th style="width: 6rem">срок</th>
             <th>задача</th>
+            <th style="width: 3rem">исп.</th>
             <th style="width: 25rem">состояние</th>
             <th style="width: 2rem">Ш</th>
         </tr>
@@ -94,6 +95,7 @@
                         {{task.name}}
                     </a>
                 </td>
+                <td>{{task.name_executor}}</td>
                 <td>{{task.condition}}</td>
                 <td>{{task.charges_penalty}}</td>
             </tr>
