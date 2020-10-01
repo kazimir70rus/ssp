@@ -49,17 +49,15 @@ function createPeriodicTasks($db, $repetition, $id_user)
 
     $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
 
-    error_log('dt_st ' . $dt_curr->format('Y-m-d') . PHP_EOL);
-
     while ($dt_curr <= $dt_en) {
 
-        $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
-        $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
-
-        // добавляем задачу
-        $id_task = $task->add($task_template, $id_periodic);
-
-        error_log('task ' . $id_task);
+        // если задача ежедневная и выпадает на выходные, то ее не добавляем
+        if (!(($_POST['repetition'] == '2') && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
+            $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+            $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+            // добавляем задачу
+            $id_task = $task->add($task_template, $id_periodic);
+        }
 
         $dt_curr->add(new \DateInterval($interval));
     }
