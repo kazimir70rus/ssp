@@ -106,7 +106,7 @@ Class Task
         if ($result < 1) {
             error_log($this->db->errInfo[1]);
         }
-        error_log('fdgdfgd');
+
         return $result;
     }
 
@@ -153,7 +153,8 @@ Class Task
                     data_end, 
                     conditions.name as `condition`, 
                     tasks.id_condition as id_condition, 
-                    charges_penalty
+                    charges_penalty,
+                    if(id_periodic = 0, "Р", "П") as periodicity
                   from 
                     task_users 
                     join tasks using (id_task) 
