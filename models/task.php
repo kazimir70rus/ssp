@@ -202,7 +202,8 @@ Class Task
                         penalty,
                         (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
                         type_report.name as report_name,
-                        type_result.name as result_name
+                        type_result.name as result_name,
+                        if(id_periodic = 0, "Разовая", "Периодическая") as periodicity
                     from
                         tasks
                         join conditions as c using (id_condition)

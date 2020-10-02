@@ -67,6 +67,10 @@
             <td>Состояние:</td>
             <td><?=$task_info['state']?></td>
         </tr>
+        <tr>
+            <td>Тип задачи:</td>
+            <td><?=$task_info['periodicity']?></td>
+        </tr>
     </table>
     <br>
     <form method="post" @submit="checkForm">
