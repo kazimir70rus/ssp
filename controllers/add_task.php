@@ -6,18 +6,21 @@ function createPeriodicTasks($db, $repetition, $id_user)
     $guide = new \ssp\models\Guide($db);
     $task = new \ssp\models\Task($db);
 
+    $repetition = (int)$_POST['repetition'];
+
     $task_template = [
                         'author'     => $id_user,
-                        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
-                        'id_report'     => (int)$_POST['id_report'],
-                        'name'          => htmlspecialchars($_POST['task']),
-                        'penalty'       => (int)$_POST['penalty'],
+                        'id_result'  => $guide->getIdTypeResult($_POST['type_result']),
+                        'id_report'  => (int)$_POST['id_report'],
+                        'name'       => htmlspecialchars($_POST['task']),
+                        'penalty'    => (int)$_POST['penalty'],
                         'executor'   => (int)$_POST['executor'],
                         'iniciator'  => (int)$_POST['iniciator'],
                         'client'     => (int)$_POST['client'],
                         'controller' => (int)$_POST['controller'],
-                        'date_from'     => $_POST['data_end'],
-                        'date_to'       => $_POST['date_to'],
+                        'date_from'  => $_POST['data_end'],
+                        'date_to'    => $_POST['date_to'],
+                        'repetition' => $repetition,
                     ];
 
     // записываем в таблицу периодических задач
@@ -28,7 +31,7 @@ function createPeriodicTasks($db, $repetition, $id_user)
     $dt_en = \DateTime::createFromFormat('Y-m-d', $_POST['date_to']);
 
     // формируем строку для интервала
-    switch ((int)$_POST['repetition']) {
+    switch ($repetition) {
         case 2:
             $interval = 'P1D';
             break;
@@ -52,7 +55,7 @@ function createPeriodicTasks($db, $repetition, $id_user)
     while ($dt_curr <= $dt_en) {
 
         // если задача ежедневная и выпадает на выходные, то ее не добавляем
-        if (!(($_POST['repetition'] == '2') && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
+        if (!(($repetition == 2) && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
             $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
             $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
             // добавляем задачу

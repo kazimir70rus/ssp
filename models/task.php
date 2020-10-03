@@ -82,10 +82,10 @@ Class Task
     {
         $query = '  insert into periodic
                         (id_author, id_iniciator, id_controller, id_executor, id_client, 
-                         name, date_from, date_to, penalty, id_result, id_report)
+                         name, date_from, date_to, penalty, id_result, id_report, repetition)
                     values
                         (:id_author, :id_iniciator, :id_controller, :id_executor, :id_client, 
-                         :name, :date_from, :date_to, :penalty, :id_result, :id_report)';
+                         :name, :date_from, :date_to, :penalty, :id_result, :id_report, :repetition)';
 
         $result = $this
                     ->db
@@ -101,6 +101,7 @@ Class Task
                                             'penalty'       => $task_info['penalty'],
                                             'id_result'     => $task_info['id_result'],
                                             'id_report'     => $task_info['id_report'],
+                                            'repetition'    => $task_info['repetition'],
                                         ]);
 
         if ($result < 1) {
