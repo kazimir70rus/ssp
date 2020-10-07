@@ -38,7 +38,14 @@
                     <option v-for="executor in executors" v-bind:value="executor.id_user">{{executor.name}}</option>
                 </select>
                 <br>
+                <button type="button" v-on:click="add_executor">добавить исполнителя</button>
+               
+                <template v-for="(user, index) in executors_for_task">
+                    <div v-on:click="remove_executor(index)"><a href="#">{{user.name}}</a></div>
+                    <input type="hidden" name="executors_for_task[]" v-bind:value="user.id">
+                </template>
 
+                <br>
                 Контролер:<br>
                 <select v-model="controller" name="controller" class="input input-text" required>
                     <option v-for="controller in controllers" v-bind:value="controller.id_user">{{controller.name}}</option>
@@ -146,6 +153,7 @@ var app = new Vue({
         repetition: 1,
         enable_ends: false,
         data_end: '',
+        executors_for_task: [],
     },
     watch: {
         repetition: function () {
@@ -215,6 +223,21 @@ var app = new Vue({
         },
         clear4: function () {
             this.name4 = '';
+        },
+        add_executor: function () {
+            if (this.executor == '')  {
+                return;
+            }
+
+            for (let i = 0; i < this.executors.length; ++i) {
+                if (this.executors[i].id_user == this.executor) {
+                    this.executors_for_task.push({id: this.executor, name: this.executors[i].name});
+                    break;
+                }
+            }
+        },
+        remove_executor: function (index) {
+            this.executors_for_task.splice(index, 1);
         },
         getIniciators: function () {
             this.$http.get(this.server + 'getiniciators').then(

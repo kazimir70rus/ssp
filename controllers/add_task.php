@@ -24,6 +24,8 @@ if (isset($_POST['submit'])) {
         'repetition'    => (int)$_POST['repetition'],
     ];
 
+    $executors_for_task = $_POST['executors_for_task'] ?? [];
+
     if ($task_info['repetition'] != 1) {
         $task_info['date_from'] = $_POST['data_end'];
         $task_info['date_to']   = $_POST['date_to'];
@@ -35,11 +37,20 @@ if (isset($_POST['submit'])) {
         exit;
     }
 
-
     $task_info['data_begin'] = $_POST['data_beg'];
     $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
 
-    $id_task = $task->add($task_info);
+    if (count($executors_for_task) > 0) {
+        foreach ($executors_for_task as $id_executor) {
+            $task_info['id_executor'] = $id_executor;
+            $task->add($task_info);
+        }
+
+        header('Location: ' . BASE_URL);
+        exit;
+    } else {
+        $id_task = $task->add($task_info);
+    }
 
     if ($id_task > 0) {
         
