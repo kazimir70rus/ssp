@@ -45,7 +45,6 @@
                 </select>
                 <br>
 
-
                 Штрафные баллы:<br>
                 <input type="number" name="penalty" v-model="penalty" required class="input input_text">
                 <br>
@@ -99,6 +98,7 @@
                 <input type="radio" v-model="repetition" name="repetition" value="2"> ежедневно<br>
                 <input type="radio" v-model="repetition" name="repetition" value="3"> еженeдельно<br>
                 <input type="radio" v-model="repetition" name="repetition" value="4"> ежемесячно<br>
+                <input type="radio" v-model="repetition" name="repetition" value="7"> ежеквартально<br>
                 <input type="radio" v-model="repetition" name="repetition" value="5"> ежегодно<br>
                 <input type="radio" v-model="repetition" name="repetition" value="6"> через 
                 <input type="number" name="period" class="input input_text" style="width: 5rem;"> дней

@@ -41,17 +41,20 @@
 </head>
 <body>
 
-<?php require_once 'logout.html'; ?>
+<?php require_once 'logout.html';
+//    с <input type="date" class="input input_text medium"> по <input type="date" class="input input_text medium"><br>
+?>
 
 <div id="app">
     <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
 
-    <input type="text" v-model="seek_str" class="input input_text">
+    поиск по наименованию: <input type="text" v-model="seek_str" class="input input_text">
     <input type="radio" v-model="common_filter" value="1"> новые
     <input type="radio" v-model="common_filter" value="2"> просроченные
     <input type="radio" v-model="common_filter" value="3"> ожидают согласования
     <input type="radio" v-model="common_filter" value="4"> завершенные и отмененные
     <input type="radio" v-model="common_filter" value="5"> все, кроме завершенных и отмененных
+
     <table v-if="tasks_for_exe.length">
         <caption>задачи к выполнению</caption>
         <tr>

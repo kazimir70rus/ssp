@@ -21,7 +21,7 @@ $task = new \ssp\models\Task($db);
 $id_task = (int)$param[1];
 
 if (isset($_POST['submit'])) {
-    
+
     $event = [
         'id_task'   => (int)$_POST['id_task'],
         'id_action' => (int)$_POST['id_action'],

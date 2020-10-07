@@ -4,27 +4,27 @@ $id_task = (int)$param[1];
 
 $user = new \ssp\models\User($db);
 $task = new \ssp\models\Task($db);
-
-if (isset($_POST['cancel'])) {
-    // поменять состояние задачи, только если она в состоянии edit и юзер автор этой задачи
-    $task->changeEditToNew((int)$_POST['id_task'], $id_user->getValue());
-
-    header('Location: ' . BASE_URL);
-    exit;
-}
+$guide = new \ssp\models\Guide($db);
 
 if (isset($_POST['save'])) {
 
-    $task_info = [];
-    $task_info['id_task']       = (int)$_POST['id_task'];
-    $task_info['name']          = htmlspecialchars($_POST['task']);
-    $task_info['id_executor']   = (int)$_POST['id_executor'];
-    $task_info['id_client']     = (int)$_POST['id_client'];
-    $task_info['id_controller'] = (int)$_POST['id_controller'];
-    $task_info['data_beg']      = $_POST['data_beg'];
-    $task_info['data_end']      = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
-    $task_info['penalty']       = (int)$_POST['penalty'];
-    $task_info['id_user']       = $id_user->getValue();
+    // необходимо проверить на изменение следующих параметров: тип задачи, периодичность у периодическиoх
+
+    // узнать тип и периодичность текущей задачи
+
+    $task_info = [
+        'id_task'       => (int)$_POST['id_task'],
+        'name'          => htmlspecialchars($_POST['task']),
+        'id_executor'   => (int)$_POST['id_executor'],
+        'id_client'     => (int)$_POST['id_client'],
+        'id_controller' => (int)$_POST['id_controller'],
+        'data_begin'    => $_POST['data_beg'],
+        'data_end'      => \ssp\module\Datemod::dateNoWeekends($_POST['data_end']),
+        'penalty'       => (int)$_POST['penalty'],
+        'id_user'       => $id_user->getValue(),
+        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
+        'id_report'     => (int)$_POST['id_report'],
+    ];
 
     $task->saveAfterEdit($task_info);
 
@@ -52,6 +52,9 @@ if (!is_array($task_info)) {
     header('Location: ' . BASE_URL);
     exit;
 }
+
+$type_result = $guide->getNameTypeResult($task_info['id_result']);
+$list_report = $guide->getTypeReports();
 
 require_once 'views/edit_task.php';
 

@@ -3,7 +3,7 @@
 namespace ssp\models;
 
 define('NEW_TASK', 9);
-define('TASK_CANCEL' , 7);
+define('TASK_CANCEL', 7);
 define('TASK_END', 6);
 
 Class Task
@@ -30,7 +30,7 @@ Class Task
                         ->db
                         ->insertData($query, [
                                                 'name'        => $task_info['name'],
-                                                'data_begin'  => $task_info['data_beg'],
+                                                'data_begin'  => $task_info['data_begin'],
                                                 'data_end'    => $task_info['data_end'],
                                                 'penalty'     => $task_info['penalty'],
                                                 'id_result'   => $task_info['id_result'],
@@ -52,11 +52,11 @@ Class Task
             $result = $this
                             ->db
                             ->insertData($query, [
-                                                    'id_executor'   => $task_info['executor'],
-                                                    'id_iniciator'  => $task_info['iniciator'],
-                                                    'id_client'     => $task_info['client'],
-                                                    'id_controller' => $task_info['controller'],
-                                                    'id_author'     => $task_info['author'],
+                                                    'id_executor'   => $task_info['id_executor'],
+                                                    'id_iniciator'  => $task_info['id_iniciator'],
+                                                    'id_client'     => $task_info['id_client'],
+                                                    'id_controller' => $task_info['id_controller'],
+                                                    'id_author'     => $task_info['id_author'],
                                                     'id_task'       => $id_task,
                                                 ]);
 
@@ -90,11 +90,11 @@ Class Task
         $result = $this
                     ->db
                     ->insertData($query, [
-                                            'id_author'     => $task_info['author'],
-                                            'id_iniciator'  => $task_info['iniciator'],
-                                            'id_controller' => $task_info['controller'],
-                                            'id_executor'   => $task_info['executor'],
-                                            'id_client'     => $task_info['client'],
+                                            'id_author'     => $task_info['id_author'],
+                                            'id_iniciator'  => $task_info['id_iniciator'],
+                                            'id_controller' => $task_info['id_controller'],
+                                            'id_executor'   => $task_info['id_executor'],
+                                            'id_client'     => $task_info['id_client'],
                                             'name'          => $task_info['name'],
                                             'date_from'     => $task_info['date_from'],
                                             'date_to'       => $task_info['date_to'],
@@ -151,7 +151,8 @@ Class Task
         $query = 'select distinct
                     id_task,
                     tasks.name as name, 
-                    data_end, 
+                    date_format(data_end, "%d-%m-%Y") as data_end,
+                    data_end as date_end,
                     conditions.name as `condition`, 
                     tasks.id_condition as id_condition, 
                     charges_penalty,
@@ -163,12 +164,12 @@ Class Task
                     task_users 
                     join tasks using (id_task) 
                     left join (
-								select
-									id_task, sum(penalty) as charges_penalty
-								from
-									penaltys
-								group by
-									id_task
+                                select
+                                    id_task, sum(penalty) as charges_penalty
+                                from
+                                    penaltys
+                                group by
+                                    id_task
                     ) as s_penalty using (id_task)
                     join conditions using (id_condition)
                   where 
@@ -177,7 +178,7 @@ Class Task
                     ' . $filter . ' 
                     and tasks.name like :seek_str
                   order by 
-                    data_end, 
+                    date_end, 
                     charges_penalty desc';
 
         return $this
@@ -204,7 +205,8 @@ Class Task
                         (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
                         type_report.name as report_name,
                         type_result.name as result_name,
-                        if(id_periodic = 0, "Разовая", "Периодическая") as periodicity
+                        if(id_periodic = 0, "Разовая", "Периодическая") as periodicity,
+                        if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition
                     from
                         tasks
                         join conditions as c using (id_condition)
@@ -259,8 +261,8 @@ Class Task
                                             'id_action' => $event['id_action'],
                                             'id_user'   => $event['id_user'],
                                         ]);
-        
-        if ($result > 0) {
+
+        if (($result > 0) || (int)$event['id_action'] == 17) {
 
             // изменение параметров задачи
             // если id_action = 5, то вставляем последнюю дату из истории
@@ -379,16 +381,18 @@ Class Task
         // и только в сотоянии - новая
         $query = '
             select
-                name, data_begin, data_end, penalty,
+                name, data_begin, data_end, penalty, id_result, id_report,
                 (select id_user from task_users where id_task = :id_task and id_tip = 1) as id_executor,
                 (select id_user from task_users where id_task = :id_task and id_tip = 2) as id_client,
                 (select id_user from task_users where id_task = :id_task and id_tip = 3) as id_iniciator,
-                (select id_user from task_users where id_task = :id_task and id_tip = 4) as id_controller
+                (select id_user from task_users where id_task = :id_task and id_tip = 4) as id_controller,
+                if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition,
+                if(id_periodic = 0, "", (select date_to from periodic where periodic.id_periodic = tasks.id_periodic)) as date_to
             from
                 tasks
             where
                 tasks.id_task = :id_task
-                and id_condition = 10
+                and id_condition in (9, 10)
             having 
                 id_iniciator = :id_user
                 or id_controller = :id_user';
@@ -420,12 +424,14 @@ Class Task
             update tasks join task_users using (id_task)
                 set id_condition = 9,
                 name = :name,
-                data_begin = :data_beg,
+                data_begin = :data_begin,
                 data_end = :data_end,
-                penalty = :penalty
+                penalty = :penalty,
+                id_result = :id_result,
+                id_report = :id_report
             where
                 id_task = :id_task
-                and id_condition = 10
+                and id_condition in (9, 10) 
                 and id_user = :id_user
                 and id_tip in (5)';
 
@@ -435,9 +441,11 @@ Class Task
                                                 'id_task'    => $task_info['id_task'],
                                                 'id_user'    => $task_info['id_user'],
                                                 'name'       => $task_info['name'],
-                                                'data_beg'   => $task_info['data_beg'],
+                                                'data_begin' => $task_info['data_begin'],
                                                 'data_end'   => $task_info['data_end'],
                                                 'penalty'    => $task_info['penalty'],
+                                                'id_result'  => $task_info['id_result'],
+                                                'id_report'  => $task_info['id_report'],
                                              ]);
 
         $query = '  update task_users
@@ -621,6 +629,55 @@ Class Task
         }
 
         return false;
+    }
+
+
+    function createPeriodicTasks($task_template)
+    {
+        // записываем в таблицу периодических задач
+        $id_periodic = $this->addPeriodic($task_template);
+
+        // граница интервалов
+        $dt_st = \DateTime::createFromFormat('Y-m-d', $task_template['date_from']);
+        $dt_en = \DateTime::createFromFormat('Y-m-d', $task_template['date_to']);
+
+        // формируем строку для интервала
+        switch ($task_template['repetition']) {
+            case 2:
+                $interval = 'P1D';
+                break;
+            case 3:
+                $interval = 'P7D';
+                break;
+            case 4:
+                $interval = 'P1M';
+                break;
+            case 7:
+                $interval = 'P3M';
+                break;
+            case 5:
+                $interval = 'P1Y';
+                break;
+            case 6:
+                $days = $task_template['period'] ?? 30;
+                $interval = 'P' . $days . 'D';
+                break;
+        }
+
+        $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
+
+        while ($dt_curr <= $dt_en) {
+
+            // если задача ежедневная и выпадает на выходные, то ее не добавляем
+            if (!(($task_template['repetition'] == 2) && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
+                $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+                $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+                // добавляем задачу
+                $id_task = $this->add($task_template, $id_periodic);
+            }
+
+            $dt_curr->add(new \DateInterval($interval));
+        }
     }
 }
 

@@ -14,7 +14,7 @@ Class Guide
 
 
     // возвращает список видов результата
-    function getTypeResults($seek_str)
+    function getTypeResults($seek_str = '')
     {
         $seek_str = htmlspecialchars(trim($seek_str));
 
@@ -32,7 +32,7 @@ Class Guide
     }
 
 
-    // возвращает id вида результата
+    // возвращает id вида результата, и при неоходимости создает запись
     function getIdTypeResult($name)
     {
         $query = 'select id_result from type_result where name = :name';
@@ -43,6 +43,23 @@ Class Guide
             return $result['id_result'];
         } else {
             return $this->addResult($name);
+        }
+    }
+
+
+    // возвращает наименоване типа результата
+    function getNameTypeResult($id_result)
+    {
+        $query = 'select name from type_result where id_result = :id_result';
+
+        $result = $this->db->getRow($query, ['id_result' => $id_result]);
+
+        if (is_array($result)) {
+         
+            return $result['name'];
+        } else {
+ 
+            return '';
         }
     }
 
