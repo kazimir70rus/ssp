@@ -91,7 +91,7 @@
                     <input type="date" name="data_beg" value="<?=$cur_date->format('Y-m-d')?>" required class="input input_text">
                 </div>
                 Срок исполнения:<br>
-                <input type="date" name="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
+                <input type="date" name="data_end" v-model="data_end" value="<?=$fin_date->format('Y-m-d')?>" required class="input input_text">
                 <br>
                 периодичность:<br>
                 <input type="radio" v-model="repetition" name="repetition" value="1"> разовая<br>
@@ -145,6 +145,7 @@ var app = new Vue({
         penalty: 1,
         repetition: 1,
         enable_ends: false,
+        data_end: '',
     },
     watch: {
         repetition: function () {
@@ -227,7 +228,21 @@ var app = new Vue({
             );
         },
         checkForm: function (e) {
-            if (parseInt(this.penalty) > 0) {
+
+            let flag = true;
+
+            const cur_dt = new Date('<?=date('Y-m-d')?>');
+            const end_dt = new Date(this.data_end);
+
+            if (cur_dt >= end_dt) {
+               flag = false;
+            }
+
+            if (parseInt(this.penalty) <= 0) {
+                flag = false;
+            }
+
+            if (flag) {
                 return true;
             }
 
@@ -327,6 +342,7 @@ var app = new Vue({
     created: function () {
         this.getIniciators();
         this.getGuide();
+        this.data_end = '<?=$fin_date->format('Y-m-d')?>';
     },
 });
 

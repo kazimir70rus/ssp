@@ -9,7 +9,7 @@
 
 <?php require_once 'logout.html'; ?>
 <div id="app">
-    <form method="post">
+    <form method="post" @submit="checkForm">
         <input type="hidden" value="<?=$id_task?>" name="id_task">
         <div style="display: flex;">
 
@@ -73,7 +73,7 @@
                 </select>
                 <br>
                 Штрафные баллы:<br>
-                <input type="number" name="penalty" value="<?=$task_info['penalty']?>" required class="input input_text">
+                <input type="number" name="penalty" v-model="penalty" value="<?=$task_info['penalty']?>" required class="input input_text">
                 <br>
                 <input type="submit" name="save" value="Сохранить" class="input input_button">
                 <br>
@@ -86,7 +86,7 @@
                     <input type="date" name="data_beg" value="<?=$task_info['data_begin']?>" required class="input input_text">
                 </div>
                 Срок исполнения:<br>
-                <input type="date" name="data_end" value="<?=$task_info['data_end']?>" required class="input input_text">
+                <input type="date" name="data_end" v-model="data_end" value="<?=$task_info['data_end']?>" required class="input input_text">
                 <br>
                 периодичность:<br>
                 <input type="radio" v-model="repetition" name="repetition" value="1"> разовая<br>
@@ -120,7 +120,9 @@ var app = new Vue({
         type_result: '<?=$type_result?>',
         res_visible: false,
         enable_ends: false,
-        repetition: 1, 
+        repetition: 1,
+        data_end: '',
+        penalty: '',
     },
     watch: {
         repetition: function () {
@@ -155,9 +157,32 @@ var app = new Vue({
             this.res_visible = false;
             this.type_result = this.name_result;
         },
+        checkForm: function (e) {
+
+            let flag = true;
+
+            const cur_dt = new Date('<?=date('Y-m-d')?>');
+            const end_dt = new Date(this.data_end);
+
+            if (cur_dt >= end_dt) {
+               flag = false;
+            }
+
+            if (parseInt(this.penalty) <= 0) {
+                flag = false;
+            }
+
+            if (flag) {
+                return true;
+            }
+
+            e.preventDefault();
+        },
     },
     created: function (){
         this.repetition = <?=$task_info['repetition']?>;
+        this.data_end = '<?=$task_info['data_end']?>';
+        this.penalty = <?=$task_info['penalty']?>;
 },
 });
 
