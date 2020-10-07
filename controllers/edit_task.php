@@ -8,25 +8,66 @@ $guide = new \ssp\models\Guide($db);
 
 if (isset($_POST['save'])) {
 
-    // необходимо проверить на изменение следующих параметров: тип задачи, периодичность у периодическиoх
-
-    // узнать тип и периодичность текущей задачи
-
     $task_info = [
         'id_task'       => (int)$_POST['id_task'],
+        'id_author'     => $id_user->getValue(),
+        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
+        'id_report'     => (int)$_POST['id_report'],
         'name'          => htmlspecialchars($_POST['task']),
+        'penalty'       => (int)$_POST['penalty'],
         'id_executor'   => (int)$_POST['id_executor'],
         'id_client'     => (int)$_POST['id_client'],
         'id_controller' => (int)$_POST['id_controller'],
-        'data_begin'    => $_POST['data_beg'],
-        'data_end'      => \ssp\module\Datemod::dateNoWeekends($_POST['data_end']),
-        'penalty'       => (int)$_POST['penalty'],
-        'id_user'       => $id_user->getValue(),
-        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
-        'id_report'     => (int)$_POST['id_report'],
+        'repetition'    => (int)$_POST['repetition'],
     ];
 
-    $task->saveAfterEdit($task_info);
+    // узнаем период повтора этой задачи до редактирования
+    $prev_task_repetition = $task->getRepetition($task_info['id_task']);
+
+    if (($prev_task_repetition == 1) && ($task_info['repetition'] == 1)) {
+
+        // задача была разовая, такой осталась
+        $task_info['data_begin'] = $_POST['data_beg'];
+        $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
+
+        $task->saveAfterEdit($task_info);
+
+        header('Location: ' . BASE_URL);
+        exit;
+    }
+
+    // т.к. дальше будем создавать задачи нам необходимо узнать инициатора редактируемой задачи
+    $task_info['id_iniciator'] = $user->getIdIniciator($task_info['id_task']);
+
+    if ($prev_task_repetition != 1) {
+        // раньше была периодической, теперь или разовая или периодическая
+
+        // удаляем с не наступившими сроками 
+        $task->delPeriodicTask($task_info['id_task']);
+
+        if ($task_info['repetition'] == 1) {
+            // создаем разовую задачу
+            $task_info['data_begin'] = $_POST['data_beg'];
+            $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
+
+            $task->add($task_info);
+
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+    } else {
+        // задача была разовой, а стала периодической
+
+        // если срок еще не подошел, то удаляем задачу
+        $task->delOneTimeTask($task_info['id_task']);
+    }
+
+    // создаем периодическую
+    $task_info['date_from'] = $_POST['data_end'];
+    $task_info['date_to']   = $_POST['date_to'];
+    $task_info['period']    = $_POST['period'] ?? 30;
+
+    $task->createPeriodicTasks($task_info);
 
     header('Location: ' . BASE_URL);
     exit;

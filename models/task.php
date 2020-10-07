@@ -432,14 +432,14 @@ Class Task
             where
                 id_task = :id_task
                 and id_condition in (9, 10) 
-                and id_user = :id_user
+                and id_user = :id_author
                 and id_tip in (5)';
 
         $result1 = $this
                         ->db
                         ->updateData($query, [
                                                 'id_task'    => $task_info['id_task'],
-                                                'id_user'    => $task_info['id_user'],
+                                                'id_author'  => $task_info['id_author'],
                                                 'name'       => $task_info['name'],
                                                 'data_begin' => $task_info['data_begin'],
                                                 'data_end'   => $task_info['data_end'],
@@ -670,13 +670,139 @@ Class Task
 
             // если задача ежедневная и выпадает на выходные, то ее не добавляем
             if (!(($task_template['repetition'] == 2) && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
-                $task_template['data_beg'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+                $task_template['data_begin'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
                 $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
                 // добавляем задачу
                 $id_task = $this->add($task_template, $id_periodic);
             }
 
             $dt_curr->add(new \DateInterval($interval));
+        }
+    }
+
+
+    // возвращает период повторений для указанной задачи
+    function getRepetition($id_task)
+    {
+        $query = 'select 
+                        if(repetition is null, 1, repetition) as repetition
+                  from 
+                        tasks left join periodic using (id_periodic)
+                  where
+                        id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if ($result != -1) {
+            return $result['repetition'];
+        } else {
+            return false;
+        }
+    }
+
+
+    // удалени разовой задачи
+    function delOneTimeTask($id_task)
+    {
+        $this->db->beginTransaction();
+        $result = false;
+
+        $query = 'delete from task_users where id_task = :id_task';
+
+        if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+
+            $query = 'delete from events where id_task = :id_task';
+
+            if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+
+                $query = 'delete from tasks where id_task = :id_task and id_condition in (9, 10) and data_end > :cur_date';
+
+                if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => date('Y-m-d')]) > 0) {
+                    $result = true;
+                }
+            }
+        }
+        
+        // завершаем транзакцию
+        if ($result) {
+            $this->db->commit();
+            return true;
+        } else {
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+
+    // удаление периодической задачи и ее потомков
+    function delPeriodicTask($id_task)
+    {
+        $this->db->beginTransaction();
+        $result = false;
+
+        $cur_date = date('Y-m-d');
+
+
+        $query = '
+            delete from
+                task_users 
+            where 
+                id_task in (
+                    select 
+                        id_task 
+                    from 
+                        tasks 
+                    where 
+                        data_end > :cur_date and
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+
+        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+
+            $query = '
+                delete from 
+                    events
+                where 
+                    id_task in (
+                        select 
+                            id_task 
+                        from 
+                            tasks 
+                        where 
+                            data_end > :cur_date and
+                            id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+
+            if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+
+                $query = '
+                    delete from
+                        periodic
+                    where
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+
+                if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+
+                    $query = '
+                        delete from 
+                            tasks 
+                        where 
+                            data_end > :cur_date and
+                            id_condition in (9, 10) and
+                            id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+
+                    if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+                        $result = true;
+                    }
+                }
+            }
+        }
+        
+        // завершаем транзакцию
+        if ($result) {
+            $this->db->commit();
+            return true;
+        } else {
+            $this->db->rollBack();
+            return false;
         }
     }
 }
