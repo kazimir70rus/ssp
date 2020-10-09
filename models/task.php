@@ -159,7 +159,11 @@ Class Task
                     if(id_periodic = 0, "Р", "П") as periodicity,
                     (select name from task_users join users using (id_user)
                        where id_tip = 1 and task_users.id_task = tasks.id_task
-                    ) as name_executor
+                    ) as name_executor,
+                    (select name from task_users join users using (id_user)
+                       where id_tip = 2 and task_users.id_task = tasks.id_task
+                    ) as name_client,
+                    penalty
                   from 
                     task_users 
                     join tasks using (id_task) 
