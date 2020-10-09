@@ -127,6 +127,7 @@ var app = new Vue({
         tasks_for_ctr: [],
         seek_str: '',
         common_filter: 5,
+        cookies: [],
     },
     watch: {
         seek_str: function () {
@@ -136,6 +137,9 @@ var app = new Vue({
             }
         },
         common_filter: function () {
+
+            document.cookie = "common_filter=" + this.common_filter + "; SameSite=Strict";
+
             // список задач к выполнению
             this.getListTasksExe();
 
@@ -166,8 +170,34 @@ var app = new Vue({
                 }
             );
         },
+        readCookies: function () {
+            const raw_str = document.cookie;
+
+            const raw_arr = raw_str.split('; ');
+
+            this.cookies = [];
+
+            for (let i = 0; i < raw_arr.length; ++i) {
+                el = raw_arr[i].split('=');
+                this.cookies.push({name: el[0], value: el[1]});
+            }
+        },
+        getCookie: function (name, value) {
+            for (let i = 0; i < this.cookies.length; ++i) {
+                if (this.cookies[i].name == name) {
+                    return this.cookies[i].value;
+                }
+            }
+
+            return value;
+        },
     },
     created: function() {
+
+        this.readCookies();
+
+        this.common_filter = this.getCookie('common_filter');
+
         // список задач к выполнению
         this.getListTasksExe();
 
