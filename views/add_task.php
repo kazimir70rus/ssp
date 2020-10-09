@@ -257,7 +257,7 @@ var app = new Vue({
             const cur_dt = new Date('<?=date('Y-m-d')?>');
             const end_dt = new Date(this.data_end);
 
-            if (cur_dt >= end_dt) {
+            if (cur_dt > end_dt) {
                flag = false;
             }
 
