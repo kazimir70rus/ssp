@@ -147,7 +147,21 @@ Class Task
                 break;
         }
 
-        $is_executor = (int)$data['is_executor'] ? ' and id_tip = 1 ' : ' and id_tip != 1 ';
+
+        // сортировка по исполнителю, нужна только для контролируемых задач
+        if ((int)$data['is_executor']) {
+            $is_executor = ' id_user = :id_user and id_tip = 1 ';
+        } else {
+            $is_executor = '
+                task_users.id_task in (
+                        select id_task from task_users where id_user = :id_user and id_tip in (2, 3, 4)
+                )';
+            if ((int)$data['id_executor']) {
+                $is_executor .= ' and id_tip = 1  and id_user = ' . (int)$data['id_executor'] . ' ';
+            } else {
+                $is_executor .= ' and id_tip != 1 ';
+            }
+        }
         $query = 'select distinct
                     id_task,
                     tasks.name as name, 
@@ -177,7 +191,6 @@ Class Task
                     ) as s_penalty using (id_task)
                     join conditions using (id_condition)
                   where 
-                    id_user = :id_user 
                     ' . $is_executor . ' 
                     ' . $filter . ' 
                     and tasks.name like :seek_str
@@ -808,6 +821,24 @@ Class Task
             $this->db->rollBack();
             return false;
         }
+    }
+
+
+    // получение списка исполнителей у задач, находящихся под контролем у конкретного пользователя
+    function getExesForControl($id_user)
+    {
+        $query = '
+            select
+                distinct task_users.id_user as id_user, name
+            from
+                task_users join users using (id_user)
+            where
+                id_tip = 1
+                and id_task in (
+                    select id_task from task_users where id_user = :id_user and id_tip in (2, 3, 4)
+                )';
+
+        return $this->db->getList($query, ['id_user' => $id_user]);
     }
 }
 

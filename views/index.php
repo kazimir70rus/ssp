@@ -49,11 +49,15 @@
     <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
 
     поиск по наименованию: <input type="text" v-model="seek_str" class="input input_text">
-    <input type="radio" v-model="common_filter" value="1"> новые
-    <input type="radio" v-model="common_filter" value="2"> просроченные
-    <input type="radio" v-model="common_filter" value="3"> ожидают согласования
-    <input type="radio" v-model="common_filter" value="4"> завершенные и отмененные
-    <input type="radio" v-model="common_filter" value="5"> все, кроме завершенных и отмененных
+    <input type="radio" v-model="common_filter" value="1"> новые;
+    <input type="radio" v-model="common_filter" value="2"> просроченные;
+    <input type="radio" v-model="common_filter" value="3"> ожидают согласования;
+    <input type="radio" v-model="common_filter" value="4"> завершенные и отмененные;
+    <input type="radio" v-model="common_filter" value="5"> все, кроме завершенных и отмененных;
+    исполнитель: <select v-model="id_executor">
+        <option value="">Все</option>
+        <option v-for="executor in executors" v-bind:value="executor.id_user">{{executor.name}}</option>
+    </select>
 
     <table v-if="tasks_for_exe.length">
         <caption>задачи к выполнению</caption>
@@ -128,6 +132,8 @@ var app = new Vue({
         seek_str: '',
         common_filter: 5,
         cookies: [],
+        executors: [],
+        id_executor: '',
     },
     watch: {
         seek_str: function () {
@@ -146,10 +152,19 @@ var app = new Vue({
             // список задач для контроля
             this.getListTasksCtr();
         },
+        id_executor: function () {
+            // список задач для контроля
+            this.getListTasksCtr();
+        },
     },
     methods: {
         getListTasksExe: function () {
-            param = {'is_executor': 1, 'filter': this.common_filter, 'seek_str': this.seek_str};
+            param = {
+                'is_executor': 1,
+                'filter'     : this.common_filter,
+                'seek_str'   : this.seek_str,
+                'id_executor': this.id_executor,
+            };
             this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
                     this.tasks_for_exe = otvet.data;
@@ -160,10 +175,25 @@ var app = new Vue({
             );
         },
         getListTasksCtr: function () {
-            param = {'is_executor': 0, 'filter': this.common_filter, 'seek_str': this.seek_str};
+            param = {
+                'is_executor': 0, 
+                'filter'     : this.common_filter, 
+                'seek_str'   : this.seek_str,
+                'id_executor': this.id_executor,
+            };
             this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
                     this.tasks_for_ctr = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        getExesForControl: function () {
+            this.$http.get(this.server + 'getexesforcontrol/').then(
+                function (otvet) {
+                    this.executors = otvet.data;
                 },
                 function (err) {
                     console.log(err);
@@ -196,7 +226,10 @@ var app = new Vue({
 
         this.readCookies();
 
-        this.common_filter = this.getCookie('common_filter');
+        this.common_filter = this.getCookie('common_filter', 5);
+
+        // список исполнитлей
+        this.getExesForControl();
 
         // список задач к выполнению
         this.getListTasksExe();
