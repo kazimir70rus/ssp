@@ -36,29 +36,56 @@
             .item {
                 width: 99%;
             }
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .container div {
+            padding: 0 0.5rem;
         }    
     </style>    
 </head>
 <body>
 
-<?php require_once 'logout.html';
-//    с <input type="date" class="input input_text medium"> по <input type="date" class="input input_text medium"><br>
-?>
+<?php require_once 'logout.html';?>
 
 <div id="app">
     <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
 
-    поиск по наименованию: <input type="text" v-model="seek_str" class="input input_text">
-    <input type="radio" v-model="common_filter" value="1"> новые;
-    <input type="radio" v-model="common_filter" value="2"> просроченные;
-    <input type="radio" v-model="common_filter" value="3"> ожидают согласования;
-    <input type="radio" v-model="common_filter" value="4"> завершенные и отмененные;
-    <input type="radio" v-model="common_filter" value="5"> все, кроме завершенных и отмененных;
-    исполнитель: <select v-model="id_executor">
-        <option value="">Все</option>
-        <option v-for="executor in executors" v-bind:value="executor.id_user">{{executor.name}}</option>
-    </select>
-
+    <div class="container">
+        <div style="min-width: 26rem;flex-grow: 1;">
+            наименование:
+            <input type="text" v-model="seek_str" class="input input_text">
+            <a href="#" v-on:click="clearSeek">X</a>
+        </div>
+        <div>
+            задачи:
+            <select v-model="common_filter" class="input input_text">
+                <option value="1"> новые</option>
+                <option value="2"> просроченные</option>
+                <option value="3"> ожидают согласования</option>
+                <option value="4"> завершенные и отмененные</option>
+                <option value="5"> все, кроме завершенных и отмененных</option>
+            </select>
+        </div>
+        <div>
+            исполнитель:
+            <select v-model="id_executor" class="input input_text small">
+                <option value="">Все</option>
+                <option v-for="executor in executors" v-bind:value="executor.id_user">{{executor.name}}</option>
+            </select>
+        </div>
+        <div>
+            с 
+            <input type="date" v-model="date_from" class="input input_text medium">
+            по
+            <input type="date" v-model="date_to" class="input input_text medium">
+        </div>
+    </div>
     <table v-if="tasks_for_exe.length">
         <caption>задачи к выполнению</caption>
         <tr>
@@ -134,36 +161,46 @@ var app = new Vue({
         cookies: [],
         executors: [],
         id_executor: '',
+        date_from: '',
+        date_to: '',
     },
     watch: {
         seek_str: function () {
-            if (this.seek_str.length > 3) {
-                this.getListTasksExe(this.seek_str);
-                this.getListTasksCtr(this.seek_str);
+            if (this.seek_str.length > 2) {
+                document.cookie = "seek_str=" + this.seek_str + "; SameSite=Strict";
+                this.updateListTasks();
             }
         },
         common_filter: function () {
-
             document.cookie = "common_filter=" + this.common_filter + "; SameSite=Strict";
-
-            // список задач к выполнению
-            this.getListTasksExe();
-
-            // список задач для контроля
-            this.getListTasksCtr();
+            this.updateListTasks();
         },
         id_executor: function () {
-            // список задач для контроля
-            this.getListTasksCtr();
+            document.cookie = "id_executor=" + this.id_executor + "; SameSite=Strict";
+            this.updateListTasks();
+        },
+        date_from: function () {
+            document.cookie = "date_from=" + this.date_from + "; SameSite=Strict";
+            this.updateListTasks();
+        },
+        date_to: function () {
+            document.cookie = "datei_to=" + this.datei_to + "; SameSite=Strict";
+            this.updateListTasks();
         },
     },
     methods: {
+        clearSeek: function () {
+            this.seek_str = ''; 
+            this.updateListTasks();
+        },
         getListTasksExe: function () {
             param = {
                 'is_executor': 1,
                 'filter'     : this.common_filter,
                 'seek_str'   : this.seek_str,
                 'id_executor': this.id_executor,
+                'date_from'  : this.date_from,
+                'date_to'    : this.date_to,
             };
             this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
@@ -180,6 +217,8 @@ var app = new Vue({
                 'filter'     : this.common_filter, 
                 'seek_str'   : this.seek_str,
                 'id_executor': this.id_executor,
+                'date_from'  : this.date_from,
+                'date_to'    : this.date_to,
             };
             this.$http.post(this.server + 'getlisttasks/', param).then(
                 function (otvet) {
@@ -221,21 +260,28 @@ var app = new Vue({
 
             return value;
         },
+        updateListTasks: function () {
+            // список задач к выполнению
+            this.getListTasksExe();
+
+            // список задач для контроля
+            this.getListTasksCtr();
+        },
     },
     created: function() {
 
         this.readCookies();
 
         this.common_filter = this.getCookie('common_filter', 5);
+        this.seek_str = this.getCookie('seek_str', '');
+        this.id_executor = this.getCookie('id_executor', '');
+        this.date_from = this.getCookie('date_from', '');
+        this.date_to = this.getCookie('date_to', '');
 
         // список исполнитлей
         this.getExesForControl();
 
-        // список задач к выполнению
-        this.getListTasksExe();
-
-        // список задач для контроля
-        this.getListTasksCtr();
+        this.updateListTasks();
     }
 });
 

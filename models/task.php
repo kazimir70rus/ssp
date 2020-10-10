@@ -147,7 +147,6 @@ Class Task
                 break;
         }
 
-
         // сортировка по исполнителю, нужна только для контролируемых задач
         if ((int)$data['is_executor']) {
             $is_executor = ' id_user = :id_user and id_tip = 1 ';
@@ -162,6 +161,20 @@ Class Task
                 $is_executor .= ' and id_tip != 1 ';
             }
         }
+
+        // сортировка по датам
+        $date_from = \DateTime::createFromFormat('Y-m-d', $data['date_from']);
+        $date_to = \DateTime::createFromFormat('Y-m-d', $data['date_to']);
+
+        if ($date_from) {
+            $date_seek = ' and data_end = "' . $date_from->format('Y-m-d') . '" ';
+            if ($date_to) {
+                $date_seek = ' and data_end between "' . $date_from->format('Y-m-d') . '" and "' . $date_to->format('Y-m-d') . '" ';
+            }
+        } else {
+            $date_seek = '';
+        }    
+
         $query = 'select distinct
                     id_task,
                     tasks.name as name, 
@@ -193,6 +206,7 @@ Class Task
                   where 
                     ' . $is_executor . ' 
                     ' . $filter . ' 
+                    ' . $date_seek . '
                     and tasks.name like :seek_str
                   order by 
                     date_end, 
