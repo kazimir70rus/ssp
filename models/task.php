@@ -813,8 +813,9 @@ Class Task
                     from 
                         tasks 
                     where 
-                        data_end >= :cur_date and
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10)))';
+                        data_end >= :cur_date and 
+                        id_condition in (9, 10) and
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task))';
 
         if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
@@ -829,7 +830,8 @@ Class Task
                             tasks 
                         where 
                             data_end > :cur_date and
-                            id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10)))';
+                            id_condition in (9, 10) and
+                            id_periodic = (select id_periodic from tasks where id_task = :id_task))';
 
             if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
@@ -837,7 +839,7 @@ Class Task
                     delete from
                         periodic
                     where
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10))';
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task)';
 
                 if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
