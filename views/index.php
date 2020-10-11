@@ -191,6 +191,7 @@ var app = new Vue({
     methods: {
         clearSeek: function () {
             this.seek_str = ''; 
+            document.cookie = "seek_str=" + this.seek_str + "; SameSite=Strict";
             this.updateListTasks();
         },
         getListTasksExe: function () {

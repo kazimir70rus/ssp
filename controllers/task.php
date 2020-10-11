@@ -1,42 +1,28 @@
 <?php
 
-function checkDt()
-{
-    if (!isset($_POST['dt'])) {
-        return true;
-    }
-
-    $dt = DateTime::createFromFormat('Y-m-d', $_POST['dt']);
-
-    if ($dt) {
-
-        return $dt->format('Y-m-d');
-    }
-
-    return false;
-}
-
 $task = new \ssp\models\Task($db);
 
 $id_task = (int)$param[1];
 
 if (isset($_POST['submit'])) {
 
+    // проверка имеет ли отношение пользователь к этой задаче
+    if (!$task->checkAccess((int)$_POST['id_task'], $id_user->getValue())) {
+        // доступа нет
+        header('Location: ' . BASE_URL);
+        exit;
+    }
+
     $event = [
         'id_task'   => (int)$_POST['id_task'],
         'id_action' => (int)$_POST['id_action'],
         'comment'   => htmlspecialchars($_POST['comment']),
         'id_user'   => $id_user->getValue(),
+        'penalty'   => (int)($_POST['penalty'] ?? 0),
     ];
 
-    if (isset($_POST['penalty'])) {
-        $event['penalty'] = (int)$_POST['penalty'];
-    }
-
-    $dt = checkDt();
-
-    if (strlen($dt) > 1) {
-        $event['dt'] = $dt;
+    if (\DateTime::createFromFormat('Y-m-d', $_POST['dt'] ?? '')) {
+        $event['dt'] = $_POST['dt'];
     }
 
     if ($task->updateCondition($event) > 0) {
@@ -90,6 +76,13 @@ if (isset($_POST['upload'])) {
 
     // todo
     // для предотвращения сообщения при обновлении страницы, можно сделать перенаправление
+}
+
+// проверка имеет ли отношение пользователь к этой задаче
+if (!$task->checkAccess($id_task, $id_user->getValue())) {
+    // доступа нет
+    header('Location: ' . BASE_URL);
+    exit;
 }
 
 // если для данной задачи пользователь является исполнителем и состояние задачи новая,

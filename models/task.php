@@ -273,8 +273,37 @@ Class Task
     }
 
 
+    // удаление задачи
+    function deleteTask($id_task)
+    {
+        // узнаем тип задачи
+        $query = 'select id_periodic from tasks where id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if (count($result) > 0) {
+
+            if ((int)$result['id_periodic'] == 0) {
+
+                return $this->delOneTimeTask($id_task);
+            }
+
+            $result = $this->delPeriodicTask($id_task);
+
+            return $result;
+        }
+
+        return false;
+    }
+
+
     function updateCondition($event)
     {
+        // проверим на удаление
+        if ((int)$event['id_action'] == 20) {
+            $this->deleteTask($event['id_task']);
+        }
+
         // изменение состояния задачи
         $query = '
             update tasks
@@ -740,15 +769,16 @@ Class Task
 
         $query = 'delete from task_users where id_task = :id_task';
 
-        if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+        if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
             $query = 'delete from events where id_task = :id_task';
 
-            if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+            if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
-                $query = 'delete from tasks where id_task = :id_task and id_condition in (9, 10) and data_end > :cur_date';
+                $query = 'delete from tasks where id_task = :id_task and id_condition in (9, 10) and data_end >= :cur_date';
 
-                if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => date('Y-m-d')]) > 0) {
+                if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => date('Y-m-d')]) != -1) {
+
                     $result = true;
                 }
             }
@@ -773,7 +803,6 @@ Class Task
 
         $cur_date = date('Y-m-d');
 
-
         $query = '
             delete from
                 task_users 
@@ -784,10 +813,10 @@ Class Task
                     from 
                         tasks 
                     where 
-                        data_end > :cur_date and
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+                        data_end >= :cur_date and
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10)))';
 
-        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
             $query = '
                 delete from 
@@ -800,17 +829,17 @@ Class Task
                             tasks 
                         where 
                             data_end > :cur_date and
-                            id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+                            id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10)))';
 
-            if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+            if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
                 $query = '
                     delete from
                         periodic
                     where
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task and id_condition in (9, 10))';
 
-                if ($this->db->updateData($query, ['id_task' => $id_task]) > 0) {
+                if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
                     $query = '
                         delete from 
@@ -820,7 +849,8 @@ Class Task
                             id_condition in (9, 10) and
                             id_periodic = (select id_periodic from tasks where id_task = :id_task)';
 
-                    if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) > 0) {
+                    if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+
                         $result = true;
                     }
                 }
@@ -830,9 +860,11 @@ Class Task
         // завершаем транзакцию
         if ($result) {
             $this->db->commit();
+ 
             return true;
         } else {
             $this->db->rollBack();
+
             return false;
         }
     }
@@ -853,6 +885,21 @@ Class Task
                 )';
 
         return $this->db->getList($query, ['id_user' => $id_user]);
+    }
+
+
+    // проверям доступ пользователя к задаче
+    function checkAccess($id_task, $id_user)
+    {
+        $query = 'select id_tip from task_users where id_user = :id_user and id_task = :id_task';
+
+        $result = $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+
+        if (count($result) > 0) {
+            return true;
+        }
+
+        return false;
     }
 }
 
