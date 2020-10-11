@@ -99,7 +99,7 @@ $task->updateCondition($event);
 $task_info = $task->getInfo($id_task);
 
 // выбор возможных действий зависит от текущего состояния задачи и роли пользователя в ней
-$list_actions = $task->getAction($id_task, $id_user->getValue());
+//$list_actions = $task->getAction($id_task, $id_user->getValue());
 
 // вывод истории действий которые проводились над этой задачей
 $history_actions = $task->getHistoryActions($id_task);

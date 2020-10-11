@@ -256,8 +256,7 @@ Class Task
 
     function getAction($id_task, $id_user)
     {
-        // возыращает сведения о возможных действиях над этой задачей этим пользователем
-
+        // возвращает сведения о возможных действиях над этой задачей этим пользователем
         $query = '
             select distinct
                 id_action, name, need_dt, change_penalty
@@ -267,9 +266,33 @@ Class Task
                 enable_actions.id_condition = (select id_condition from tasks where id_task = :id_task)
                 and id_tip in (select id_tip from task_users where id_task = :id_task and id_user = :id_user)';
 
-        return $this
+        $result = $this
                     ->db
                     ->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+
+        // для выполнения некоторых действий нужно выполнение определенных условий
+        foreach ($result as $index => $action) {
+            if ((int)$action['id_action'] == 12) {
+
+                // проверим тип отчета у данной задачи, требуются ли файлы
+                $query = 'select need_file from tasks join type_report using (id_report) where id_task = :id_task';
+
+                $data = $this->db->getRow($query, ['id_task' => $id_task]);
+
+                if ((int)$data['need_file'] == 1) {
+                    // для закрытия задачи необходимо наличие файла под авторством исполнителя
+                    $query = 'select count(*) as cnt from uploaddoks where id_task = :id_task and id_author = :id_user';
+
+                    $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+
+                    if ((int)$data['cnt'] == 0) {
+                        unset($result[$index]);
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
 
