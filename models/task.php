@@ -678,17 +678,19 @@ Class Task
             // просмотриваем задачи в состоянии "выполняется" и "новая"
             if (((int)$one_task['id_condition'] == 1) || ((int)$one_task['id_condition'] == 9)) {
                 $dt_end = \DateTime::createFromFormat('Y-m-d H:i', $one_task['data_end'] . ' 00:00');
+                // если срок выпадает на пятницу, то? ничего, далее эта ситуация будет обработана
                 $dt_end->add(new \DateInterval('P1DT8H'));
 
                 if ($dt_end < $dt_now) {
                     // задача просрочена
 
-                    // вычисляем разницу
-                    $interval = date_diff($dt_end, $dt_now);
-                    $interval_in_days = (int)$interval->format('%r%a');
+                    while ($dt_end <= $dt_now) {
 
-                    for ($i = 0; $i <= $interval_in_days; ++$i) {
-                        $this->moveExpiredTask($one_task['id_task'], $dt_end->format('Y-m-d'));
+                        if (($dt_end->format('N') != '6') && ($dt_end->format('N') != '7')) {
+                            // если выпадает на будни, то переносим с начисление штрафных баллов
+                            $this->moveExpiredTask($one_task['id_task'], $dt_end->format('Y-m-d'));
+                        }
+
                         $dt_end->add(new \DateInterval('P1D'));
                     }
                 }
