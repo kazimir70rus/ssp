@@ -928,5 +928,42 @@ Class Task
 
         return false;
     }
+
+
+    // добавление документа к задаче
+    function addDoks($id_task, $id_user)
+    {
+        // если пользователь не имеет отношения к задаче, выходим...
+        if (!$this->checkAccess($id_task, $id_user)) {
+            return false;
+        }
+        
+        // обработка загрузки файла
+        $uploads = new \ssp\models\Doks($this->db);
+
+        if (count($_FILES['userfile']) > 0) {
+
+            $uploaddir = 'attachdoks/' . $id_task;
+
+            if (!file_exists($uploaddir)) {
+                mkdir($uploaddir);
+            }
+
+            foreach ($_FILES['userfile']['error'] as $key => $error) {
+                if ($error == UPLOAD_ERR_OK) {
+                    $tmp_name = $_FILES['userfile']['tmp_name'][$key];
+                    // basename() может спасти от атак на файловую систему;
+                    // может понадобиться дополнительная проверка/очистка имени файла
+                    $name = basename($_FILES['userfile']['name'][$key]);
+                    if (move_uploaded_file($tmp_name, "${uploaddir}/${name}")) {
+                        $uploads->addDok($id_task, $id_user, $name);
+                    }
+                }
+            }
+
+            // todo
+            // для предотвращения сообщения при обновлении страницы, можно сделать перенаправление
+        }
+    }
 }
 

@@ -107,6 +107,7 @@
             </template>
         </table>
         <form enctype="multipart/form-data" action="" method="post">
+            <input type="hidden" name="id_task" value="<?=$id_task?>">
             <input type="file" name="userfile[]" class="input input_text" v-model="name" required>
             <button type="button" v-on:click="clear()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button><br>
             <input type="submit" name="upload" value="Добавить файл" class="input input_button">

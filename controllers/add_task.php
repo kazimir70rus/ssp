@@ -53,34 +53,7 @@ if (isset($_POST['submit'])) {
     }
 
     if ($id_task > 0) {
-        
-        // обработка загрузки файла
-        $uploads = new \ssp\models\Doks($db);
-
-        if (count($_FILES['userfile']) > 0) {
-            // todo
-            // сделать константу
-            $uploaddir = 'attachdoks/' . $id_task;
-
-            if (!file_exists($uploaddir)) {
-                mkdir($uploaddir);
-            }
-
-            foreach ($_FILES['userfile']['error'] as $key => $error) {
-                if ($error == UPLOAD_ERR_OK) {
-                    $tmp_name = $_FILES['userfile']['tmp_name'][$key];
-                    // basename() может спасти от атак на файловую систему;
-                    // может понадобиться дополнительная проверка/очистка имени файла
-                    $name = basename($_FILES['userfile']['name'][$key]);
-                    if (move_uploaded_file($tmp_name, "${uploaddir}/${name}")) {
-                        $uploads->addDok($id_task, $id_user->getValue(), $name);
-                    }
-                }
-            }
-
-            // todo
-            // для предотвращения сообщения при обновлении страницы, можно сделать перенаправление
-        }
+        $task->addDoks($id_task, $id_user->getValue());
 
         header('Location: ' . BASE_URL);
         exit;
