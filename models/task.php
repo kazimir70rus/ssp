@@ -751,6 +751,8 @@ Class Task
 
         $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
 
+        $id_tasks = [];
+
         while ($dt_curr <= $dt_en) {
 
             // если задача ежедневная и выпадает на выходные, то ее не добавляем
@@ -759,10 +761,16 @@ Class Task
                 $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
                 // добавляем задачу
                 $id_task = $this->add($task_template, $id_periodic);
+
+                if ($id_task) {
+                    $id_tasks[] = $id_task;
+                }
             }
 
             $dt_curr->add(new \DateInterval($interval));
         }
+
+        return $id_tasks;
     }
 
 

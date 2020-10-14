@@ -37,25 +37,48 @@ Class Doks
 
 
     // добавление документа к задаче
-    function addDoks($id_task, $id_user)
+    function addDoks($id_tasks, $id_user)
     {
-        if (count($_FILES['userfile']) > 0) {
+        if (count($_FILES['userfile']) == 0) {
+            return;
+        }
 
-            $uploaddir = 'attachdoks/' . $id_task;
+        $uploaddir = 'attachdoks/' . $id_tasks[0];
+
+        if (!file_exists($uploaddir)) {
+            mkdir($uploaddir);
+        }
+
+        $paths = [];
+        foreach ($_FILES['userfile']['error'] as $key => $error) {
+            if ($error == UPLOAD_ERR_OK) {
+                $tmp_name = $_FILES['userfile']['tmp_name'][$key];
+                // basename() может спасти от атак на файловую систему;
+                // может понадобиться дополнительная проверка/очистка имени файла
+                $name = basename($_FILES['userfile']['name'][$key]);
+                $full_path = "${uploaddir}/${name}";
+                if (move_uploaded_file($tmp_name, $full_path)) {
+                    $this->addDok($id_tasks[0], $id_user, $name);
+                    $paths[] = ['full_path' => $full_path, 'name' => $name];
+                }
+            }
+        }
+
+        if (count($id_tasks) == 1) {
+            return;
+        }
+
+        for ($i = 1; $i < count($id_tasks); ++$i) {
+
+            $uploaddir = 'attachdoks/' . $id_tasks[$i];
 
             if (!file_exists($uploaddir)) {
                 mkdir($uploaddir);
             }
 
-            foreach ($_FILES['userfile']['error'] as $key => $error) {
-                if ($error == UPLOAD_ERR_OK) {
-                    $tmp_name = $_FILES['userfile']['tmp_name'][$key];
-                    // basename() может спасти от атак на файловую систему;
-                    // может понадобиться дополнительная проверка/очистка имени файла
-                    $name = basename($_FILES['userfile']['name'][$key]);
-                    if (move_uploaded_file($tmp_name, "${uploaddir}/${name}")) {
-                        $this->addDok($id_task, $id_user, $name);
-                    }
+            foreach($paths as $path) {
+                if (copy($path['full_path'], $uploaddir . '/' . $path['name'])) {
+                    $this->addDok($id_tasks[$i], $id_user, $path['name']);
                 }
             }
         }

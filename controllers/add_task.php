@@ -1,7 +1,5 @@
 <?php
 
-
-
 $user = new \ssp\models\User($db);
 $guide = new \ssp\models\Guide($db);
 $task = new \ssp\models\Task($db);
@@ -24,37 +22,39 @@ if (isset($_POST['submit'])) {
         'repetition'    => (int)$_POST['repetition'],
     ];
 
-    $executors_for_task = $_POST['executors_for_task'] ?? [];
+    // исполнители для задачи
+    $executors_for_task = $_POST['executors_for_task'] ?? [(int)$_POST['executor']];
 
+    // добавление парметров в зависимости от типа задачи
     if ($task_info['repetition'] != 1) {
-        $task_info['date_from'] = $_POST['data_end'];
-        $task_info['date_to']   = $_POST['date_to'];
-        $task_info['period']    = $_POST['period'] ?? 30;
-
-        $task->createPeriodicTasks($task_info);
-
-        header('Location: ' . BASE_URL);
-        exit;
-    }
-
-    $task_info['data_begin'] = $_POST['data_beg'];
-    $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
-
-    if (count($executors_for_task) > 0) {
-        foreach ($executors_for_task as $id_executor) {
-            $task_info['id_executor'] = $id_executor;
-            $task->add($task_info);
-        }
-
-        header('Location: ' . BASE_URL);
-        exit;
+        $task_info['date_from']  = $_POST['data_end'];
+        $task_info['date_to']    = $_POST['date_to'];
+        $task_info['period']     = $_POST['period'] ?? 30;
     } else {
-        $id_task = $task->add($task_info);
+        $task_info['data_begin'] = $_POST['data_beg'];
+        $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
     }
 
-    if ($id_task > 0) {
+    $generated_tasks = [];
+    foreach ($executors_for_task as $id_executor) {
+        $task_info['id_executor'] = $id_executor;
+
+        if ($task_info['repetition'] != 1) {
+            $new_generated_tasks = $task->createPeriodicTasks($task_info);
+            $generated_tasks = array_merge($generated_tasks, $new_generated_tasks);
+        } else {
+            $new_task = $task->add($task_info);
+
+            if ($new_task) {
+                // ели задача создана добавим ее id в массив
+                $generated_tasks[] = $new_task;
+            }
+        }
+    }
+
+    if (count($generated_tasks) > 0) {
         $uploads = new \ssp\models\Doks($db);
-        $uploads->addDoks($id_task, $id_user->getValue());
+        $uploads->addDoks($generated_tasks, $id_user->getValue());
 
         header('Location: ' . BASE_URL);
         exit;
