@@ -50,7 +50,7 @@ if (isset($_POST['submit'])) {
 if (isset($_POST['upload'])) {
 
     $uploads = new \ssp\models\Doks($db);
-    $uploads->addDoks((int)$_POST['id_task'], $id_user->getValue());
+    $uploads->addDoks([(int)$_POST['id_task']], $id_user->getValue());
 }
 
 $id_task = (int)$param[1];
