@@ -70,13 +70,57 @@ $event = [
     'comment'   => 'принял к выполнению',
     'id_user'   => $id_user->getValue(),
 ];
+
 $task->updateCondition($event);
 
 // запрашиваем детальную информацию о задаче
 $task_info = $task->getInfo($id_task);
 
-// выбор возможных действий зависит от текущего состояния задачи и роли пользователя в ней
-//$list_actions = $task->getAction($id_task, $id_user->getValue());
+$type_periodic = [
+    1 => 'разовая',
+    2 => 'ежедневно',
+    3 => 'еженедельно',
+    4 => 'ежемесячно',
+    7 => 'ежеквартально',
+    5 => 'ежегодно',
+    6 => 'через',
+];
+
+$day_of_week = [
+    1 => 'по понедельникам',
+    2 => 'по вторникам',
+    3 => 'по средам',
+    4 => 'по четвергам',
+    5 => 'по пятницам',
+];
+
+switch ((int)$task_info['repetition']) {
+    case 2:
+        $describ = '(ежедневно)';
+        break;
+    case 3:
+        $data_end = \DateTime::createFromFormat('d-m-Y', $task_info['data_end']);
+        $describ = '(еженедельно ' . $day_of_week[(int)$data_end->format('N')] . ')';
+        break;
+    case 4:
+        $data_end = \DateTime::createFromFormat('d-m-Y', $task_info['data_end']);
+        $describ = '(ежемесячно ' . $data_end->format('d') . ' числа)';
+        break;
+    case 5:
+        $data_end = \DateTime::createFromFormat('d-m-Y', $task_info['data_end']);
+        $describ = '(ежегодно ' . $data_end->format('d-m') . ' числа)';
+        break;
+    case 6:
+        $describ = '(через ' . $task_info['custom_interval'] . ' дн.)';
+        break;
+    case 7:
+        $data_end = \DateTime::createFromFormat('d-m-Y', $task_info['data_end']);
+        $describ = '(ежеквартально ' . $data_end->format('d') . ' числа)';
+        break;
+    default:
+        $describ = '';
+        break;
+}
 
 // вывод истории действий которые проводились над этой задачей
 $history_actions = $task->getHistoryActions($id_task);

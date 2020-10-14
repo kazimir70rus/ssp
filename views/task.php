@@ -69,7 +69,7 @@
         </tr>
         <tr>
             <td>Тип задачи:</td>
-            <td><?=$task_info['periodicity']?></td>
+            <td><?=$task_info['periodicity'] . ' ' . $describ?></td>
         </tr>
     </table>
     <br>

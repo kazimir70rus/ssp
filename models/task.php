@@ -80,12 +80,13 @@ Class Task
     // добавляем в реест приодических задач
     function addPeriodic($task_info)
     {
-        $query = '  insert into periodic
-                        (id_author, id_iniciator, id_controller, id_executor, id_client, 
-                         name, date_from, date_to, penalty, id_result, id_report, repetition)
-                    values
-                        (:id_author, :id_iniciator, :id_controller, :id_executor, :id_client, 
-                         :name, :date_from, :date_to, :penalty, :id_result, :id_report, :repetition)';
+        $query = '
+            insert into periodic
+                (id_author, id_iniciator, id_controller, id_executor, id_client, name, date_from, 
+                date_to, penalty, id_result, id_report, repetition, custom_interval)
+            values
+                (:id_author, :id_iniciator, :id_controller, :id_executor, :id_client, :name, 
+                :date_from, :date_to, :penalty, :id_result, :id_report, :repetition, :interval)';
 
         $result = $this
                     ->db
@@ -102,6 +103,7 @@ Class Task
                                             'id_result'     => $task_info['id_result'],
                                             'id_report'     => $task_info['id_report'],
                                             'repetition'    => $task_info['repetition'],
+                                            'interval'      => $task_info['interval'],
                                         ]);
 
         if ($result < 1) {
@@ -237,7 +239,8 @@ Class Task
                         type_report.name as report_name,
                         type_result.name as result_name,
                         if(id_periodic = 0, "Разовая", "Периодическая") as periodicity,
-                        if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition
+                        if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition,
+                        if(id_periodic = 0, 1, (select custom_interval from periodic where periodic.id_periodic = tasks.id_periodic)) as custom_interval
                     from
                         tasks
                         join conditions as c using (id_condition)
@@ -719,13 +722,11 @@ Class Task
 
     function createPeriodicTasks($task_template)
     {
-        // записываем в таблицу периодических задач
-        $id_periodic = $this->addPeriodic($task_template);
-
         // граница интервалов
         $dt_st = \DateTime::createFromFormat('Y-m-d', $task_template['date_from']);
         $dt_en = \DateTime::createFromFormat('Y-m-d', $task_template['date_to']);
 
+        $days = 0;
         // формируем строку для интервала
         switch ($task_template['repetition']) {
             case 2:
@@ -744,10 +745,15 @@ Class Task
                 $interval = 'P1Y';
                 break;
             case 6:
-                $days = $task_template['period'] ?? 30;
+                $days = (int)($task_template['period'] ?? 30);
+                $days = ($days < 1) ? 30 : $days;
                 $interval = 'P' . $days . 'D';
                 break;
         }
+
+        // записываем в таблицу периодических задач
+        $task_template['interval'] = $days;
+        $id_periodic = $this->addPeriodic($task_template);
 
         $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
 
