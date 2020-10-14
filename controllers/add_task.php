@@ -53,7 +53,8 @@ if (isset($_POST['submit'])) {
     }
 
     if ($id_task > 0) {
-        $task->addDoks($id_task, $id_user->getValue());
+        $uploads = new \ssp\models\Doks($db);
+        $uploads->addDoks($id_task, $id_user->getValue());
 
         header('Location: ' . BASE_URL);
         exit;

@@ -2,8 +2,6 @@
 
 $task = new \ssp\models\Task($db);
 
-$id_task = (int)$param[1];
-
 if (isset($_POST['submit'])) {
 
     // проверка имеет ли отношение пользователь к этой задаче
@@ -49,13 +47,13 @@ if (isset($_POST['submit'])) {
     }
 }
 
-
 if (isset($_POST['upload'])) {
 
-    $id_task = (int)$_POST['id_task'];
-    
-    $task->addDoks($id_task, $id_user->getValue());
+    $uploads = new \ssp\models\Doks($db);
+    $uploads->addDoks((int)$_POST['id_task'], $id_user->getValue());
 }
+
+$id_task = (int)$param[1];
 
 // проверка имеет ли отношение пользователь к этой задаче
 if (!$task->checkAccess($id_task, $id_user->getValue())) {

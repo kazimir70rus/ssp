@@ -34,5 +34,31 @@ Class Doks
                                                 'filename'  => $filename,
                                              ]);
     }
+
+
+    // добавление документа к задаче
+    function addDoks($id_task, $id_user)
+    {
+        if (count($_FILES['userfile']) > 0) {
+
+            $uploaddir = 'attachdoks/' . $id_task;
+
+            if (!file_exists($uploaddir)) {
+                mkdir($uploaddir);
+            }
+
+            foreach ($_FILES['userfile']['error'] as $key => $error) {
+                if ($error == UPLOAD_ERR_OK) {
+                    $tmp_name = $_FILES['userfile']['tmp_name'][$key];
+                    // basename() может спасти от атак на файловую систему;
+                    // может понадобиться дополнительная проверка/очистка имени файла
+                    $name = basename($_FILES['userfile']['name'][$key]);
+                    if (move_uploaded_file($tmp_name, "${uploaddir}/${name}")) {
+                        $this->addDok($id_task, $id_user, $name);
+                    }
+                }
+            }
+        }
+    }
 }
 
