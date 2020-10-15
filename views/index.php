@@ -54,7 +54,13 @@
 <?php require_once 'logout.html';?>
 
 <div id="app">
-    <br><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a><br><br>    
+
+    <div class="container">
+        <div><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a></div>
+        <div><a href="#" v-on:click="reset_filter"><b>Сброс фильтра</b></a></div>
+    </div>
+
+    <br>
 
     <div class="container">
         <div style="min-width: 26rem;flex-grow: 1;">
@@ -193,6 +199,13 @@ var app = new Vue({
             this.seek_str = ''; 
             document.cookie = "seek_str=" + this.seek_str + "; SameSite=Strict";
             this.updateListTasks();
+        },
+        reset_filter: function () {
+            this.common_filter = 5;
+            this.seek_str = '';
+            this.id_executor = '';
+            this.date_from = '';
+            this.date_to = '';
         },
         getListTasksExe: function () {
             param = {
