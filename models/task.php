@@ -224,6 +224,25 @@ Class Task
     }
 
 
+    // начисление штрафных баллов потребителю за затягивание сроков принятия задачи
+    function penaltyClient()
+    {
+        // список задач которые ожидают принятия потребителем
+
+        /*
+        select 
+            id_task, date_add(data_execut, interval 3 day) as data_penalty, id_user, penalty
+        from
+            tasks
+            join task_users using (id_task)
+        where
+            id_task in (select id_task from task_users where id_user = @id_user)
+            and id_condition = 3
+            and id_tip = 2
+        */
+    }
+
+
     function getInfo($id_task)
     {
         $query = '
@@ -583,15 +602,16 @@ Class Task
     // устанавливаем состояние "выполняется" для задачи, если пользователь исполнитель и задача в статусе "новая"
     function checkAndSetExec($id_task, $id_user)
     {
-        $query = '  update
-                        tasks join task_users using (id_task)
-                    set
-                        id_condition = 1
-                    where
-                        id_task = :id_task
-                        and id_condition = 9
-                        and id_tip = 1
-                        and id_user = :id_user';
+        $query = '
+            update
+                tasks join task_users using (id_task)
+            set
+                id_condition = 1
+            where
+                id_task = :id_task
+                and id_condition = 9
+                and id_tip = 1
+                and id_user = :id_user';
         
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -600,12 +620,13 @@ Class Task
     // увеличиваем кол-во штрафных баллов
     function changePenalty($id_task, $penalty)
     {
-        $query = '  update
-                        tasks
-                    set
-                        penalty = penalty + :penalty
-                    where
-                        id_task = :id_task';
+        $query = '
+            update
+                tasks
+            set
+                penalty = penalty + :penalty
+            where
+                id_task = :id_task';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'penalty' => $penalty]);
     }
@@ -656,11 +677,13 @@ Class Task
     function accruePenalty($id_task)
     {
         
-        $query = '  insert into penaltys (id_task, id_user, penalty)
-                    values (
-                        :id_task, 
-                        (select id_user from task_users where id_tip = 1 and id_task = :id_task), 
-                        (select penalty from tasks where id_task = :id_task))';
+        $query = '
+            insert into penaltys (id_task, id_user, penalty)
+            values (
+                :id_task, 
+                (select id_user from task_users where id_tip = 1 and id_task = :id_task), 
+                (select penalty from tasks where id_task = :id_task)
+            )';
 
         return $this->db->updateData($query, ['id_task' => $id_task]);
     }
