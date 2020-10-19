@@ -21,10 +21,12 @@ Class Task
     {
         $this->db->beginTransaction();
 
+        $timestamp = date('Y-m-d H:i');
+
         $query = '  insert into tasks
-                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic)
+                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic, data_create)
                     values
-                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic)';
+                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create)';
 
         $id_task = $this
                         ->db
@@ -36,6 +38,7 @@ Class Task
                                                 'id_result'   => $task_info['id_result'],
                                                 'id_report'   => $task_info['id_report'],
                                                 'id_periodic' => $id_periodic,
+                                                'data_create' => $timestamp,
                                             ]);
 
         if ($id_task > 0) {
@@ -192,7 +195,8 @@ Class Task
                     (select name from task_users join users using (id_user)
                        where id_tip = 2 and task_users.id_task = tasks.id_task
                     ) as name_client,
-                    penalty
+                    penalty,
+                    date_format(data_create, "%d-%m-%Y %H:%i") as data_create
                   from 
                     task_users 
                     join tasks using (id_task) 
@@ -222,34 +226,36 @@ Class Task
 
     function getInfo($id_task)
     {
-        $query = 'select
-                        date_format(data_end, "%d-%m-%Y") as data_end,
-                        date_format(data_begin, "%d-%m-%Y") as data_begin,
-                        id_task,
-                        tasks.name as task_name,
-                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 1) as executor,
-                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 3) as iniciator,
-                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 2) as client,
-                        (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
-                        date_format(data_execut, "%d-%m-%Y %H:%i") as data_execut,
-                        date_format(data_client, "%d-%m-%Y %H:%i") as data_client,
-                        c.name as state,
-                        penalty,
-                        (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
-                        type_report.name as report_name,
-                        type_result.name as result_name,
-                        if(id_periodic = 0, "Разовая", "Периодическая") as periodicity,
-                        if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition,
-                        if(id_periodic = 0, 1, (select custom_interval from periodic where periodic.id_periodic = tasks.id_periodic)) as custom_interval
-                    from
-                        tasks
-                        join conditions as c using (id_condition)
-                        left join type_report using (id_report)
-                        left join type_result using (id_result)
-                    where
-                        id_task = :id_task
-                    order by
-                        data_end desc';
+        $query = '
+            select
+                date_format(data_end, "%d-%m-%Y") as data_end,
+                date_format(data_begin, "%d-%m-%Y") as data_begin,
+                id_task,
+                tasks.name as task_name,
+                (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 1) as executor,
+                (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 3) as iniciator,
+                (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 2) as client,
+                (select name from users join task_users using (id_user) where id_task = :id_task and id_tip = 4) as controller,
+                date_format(data_execut, "%d-%m-%Y %H:%i") as data_execut,
+                date_format(data_client, "%d-%m-%Y %H:%i") as data_client,
+                c.name as state,
+                penalty,
+                (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
+                type_report.name as report_name,
+                type_result.name as result_name,
+                if(id_periodic = 0, "Разовая", "Периодическая") as periodicity,
+                if(id_periodic = 0, 1, (select repetition from periodic where periodic.id_periodic = tasks.id_periodic)) as repetition,
+                if(id_periodic = 0, 1, (select custom_interval from periodic where periodic.id_periodic = tasks.id_periodic)) as custom_interval,
+                date_format(data_create, "%d-%m-%Y %H:%i") as data_create
+            from
+                tasks
+                join conditions as c using (id_condition)
+                left join type_report using (id_report)
+                left join type_result using (id_result)
+            where
+                id_task = :id_task
+            order by
+                data_end desc';
 
         return $this
                     ->db

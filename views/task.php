@@ -20,6 +20,10 @@
             <td><?=$task_info['data_begin']?></td>
         </tr>
         <tr>
+            <td>Дата создания:</td>
+            <td><?=$task_info['data_create']?></td>
+        </tr>
+        <tr>
             <td>Задание:</td>
             <td><b><?=$task_info['task_name']?></b></td>
         </tr>
