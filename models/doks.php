@@ -57,6 +57,7 @@ Class Doks
                 // может понадобиться дополнительная проверка/очистка имени файла
                 $name = basename($_FILES['userfile']['name'][$key]);
                 $full_path = "${uploaddir}/${name}";
+
                 if (move_uploaded_file($tmp_name, $full_path)) {
                     $this->addDok($id_tasks[0], $id_user, $name);
                     $paths[] = ['full_path' => $full_path, 'name' => $name];
@@ -65,7 +66,7 @@ Class Doks
         }
 
         if (count($id_tasks) == 1) {
-            return;
+            return count($paths);
         }
 
         for ($i = 1; $i < count($id_tasks); ++$i) {
@@ -82,6 +83,8 @@ Class Doks
                 }
             }
         }
+
+        return count($paths);
     }
 }
 
