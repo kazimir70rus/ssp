@@ -26,5 +26,7 @@ foreach ($data as $row) {
     $content .= "\n";
 }
 
+$content = iconv('utf-8', 'windows-1251', $content);
+
 \ssp\module\Tools::save_CSV($content, 'reestr.csv');
 

@@ -16,7 +16,7 @@ Class Tools
 
     static function save_CSV(&$content, $filename)
     {
-        header('Content-type: text/csv; charset=utf-8');
+        header('Content-type: text/csv; charset=cp1251');
         header('Content-Disposition: attachment; filename=' . $filename);
         header('Content-Length: ' . strlen($content));
         echo $content;
