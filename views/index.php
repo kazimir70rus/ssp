@@ -57,6 +57,7 @@
 
     <div class="container">
         <div><a href="<?=BASE_URL?>add_task"><b>Создать новую задачу</b></a></div>
+        <div><a href="<?=BASE_URL?>unload" target="_blank"><b>Выгрузка</b></a></div>
         <div><a href="#" v-on:click="reset_filter"><b>Сброс фильтра</b></a></div>
     </div>
 

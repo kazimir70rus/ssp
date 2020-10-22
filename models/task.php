@@ -640,9 +640,9 @@ Class Task
         $result = false;
 
         // начислить штрафы
-        if ($this->accruePenalty($id_task)) {
-            // перенести задачу
+        if ($this->accruePenalty($id_task, $new_dt_end)) {
 
+            // перенести задачу
             if ($this->changeDateEnd($id_task, $new_dt_end) > 0) {
 
                 // создаем событие "перенос просроченной задачи" (18) админом (11)
@@ -651,11 +651,12 @@ Class Task
                     'id_action' => 18,
                     'comment'   => '',
                     'id_user'   => 11,
+                    'dt_create' => $new_dt_end,
                 ];
                 
                 $events = new \ssp\models\Event($this->db);
 
-                // записать событие
+                // добавить событие в журнал
                 if ($events->add($event) > 0) {
                     $result = true;
                 }
@@ -674,33 +675,36 @@ Class Task
 
     // начисление штрафных баллов за просроченную задачу
     // начисление производим на учетную запись исполнителя
-    function accruePenalty($id_task)
+    function accruePenalty($id_task, $dt, $id_tip = 1)
     {
-        
         $query = '
-            insert into penaltys (id_task, id_user, penalty)
-            values (
+            insert into penaltys (id_task, id_user, penalty, dt)
+            values(
                 :id_task, 
-                (select id_user from task_users where id_tip = 1 and id_task = :id_task), 
-                (select penalty from tasks where id_task = :id_task)
-            )';
+                (select id_user from task_users where id_tip = :id_tip and id_task = :id_task), 
+                (select penalty from tasks where id_task = :id_task),
+                :dt
+            )
+        ';
 
-        return $this->db->updateData($query, ['id_task' => $id_task]);
+        return $this->db->insertData($query, ['id_task' => $id_task, 'id_tip' => $id_tip, 'dt' => $dt]);
     }
     
 
     //ищет просроченные задачи у заданного пользователя и переносит их
     function checkExpired($id_user)
     {
-        $query = 'select distinct 
-                    id_task, 
-                    data_end, 
-                    id_condition 
-                  from 
-                    task_users 
-                    join tasks using (id_task) 
-                  where 
-                    id_user = :id_user';
+        $query = '
+            select distinct 
+                id_task, 
+                data_end, 
+                id_condition 
+            from 
+                task_users 
+                join tasks using (id_task) 
+            where 
+                id_user = :id_user
+        ';
 
         $list_tasks = $this->db->getList($query, ['id_user' => $id_user]);
 
@@ -709,7 +713,9 @@ Class Task
         foreach ($list_tasks as $one_task) {
             // просмотриваем задачи в состоянии "выполняется" и "новая"
             if (((int)$one_task['id_condition'] == 1) || ((int)$one_task['id_condition'] == 9)) {
+                // текущий срок задачи
                 $dt_end = \DateTime::createFromFormat('Y-m-d H:i', $one_task['data_end'] . ' 00:00');
+
                 // если срок выпадает на пятницу, то? ничего, далее эта ситуация будет обработана
                 $dt_end->add(new \DateInterval('P1DT8H'));
 
@@ -719,7 +725,7 @@ Class Task
                     while ($dt_end <= $dt_now) {
 
                         if (($dt_end->format('N') != '6') && ($dt_end->format('N') != '7')) {
-                            // если выпадает на будни, то переносим с начисление штрафных баллов
+                            // если выпадает на будни, то переносим с начислением штрафных баллов
                             $this->moveExpiredTask($one_task['id_task'], $dt_end->format('Y-m-d'));
                         }
 
@@ -843,11 +849,16 @@ Class Task
 
             if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
-                $query = 'delete from tasks where id_task = :id_task and id_condition in (9, 10) and data_end >= :cur_date';
+                $query = 'delete from penaltys where id_task = :id_task';
 
-                if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => date('Y-m-d')]) != -1) {
+                if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
-                    $result = true;
+                    $query = 'delete from tasks where id_task = :id_task and id_condition in (9, 10) and data_end >= :cur_date';
+
+                    if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => date('Y-m-d')]) != -1) {
+
+                        $result = true;
+                    }
                 }
             }
         }
@@ -912,16 +923,30 @@ Class Task
                 if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
                     $query = '
-                        delete from 
-                            tasks 
-                        where 
-                            data_end > :cur_date and
-                            id_condition in (9, 10) and
-                            id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+                        delete from
+                            penaltys
+                        where
+                            id_task in (
+                                select id_task from tasks where id_periodic = (
+                                    select id_periodic from tasks where id_task = :id_task
+                                )
+                            )
+                    ';
 
-                    if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+                    if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
-                        $result = true;
+                        $query = '
+                            delete from 
+                                tasks 
+                            where 
+                                data_end > :cur_date and
+                                id_condition in (9, 10) and
+                                id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+
+                        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+
+                            $result = true;
+                        }
                     }
                 }
             }
@@ -970,6 +995,60 @@ Class Task
         }
 
         return false;
+    }
+
+
+    function getReport($id_user)
+    {
+        $query = '
+            select distinct
+                if(id_periodic = 0, "Р", "П") as periodicity,
+                date_format(data_create, "%d-%m-%Y") as data_create,
+                date_format(data_create, "%H:%i") as time_create,
+                date_format(data_end, "%d-%m-%Y") as data_end,
+                tasks.name as name, 
+                conditions.name as `condition`, 
+                (select name from task_users join users using (id_user)
+                   where id_tip = 1 and task_users.id_task = tasks.id_task
+                ) as name_executor,
+                (select name from task_users join users using (id_user)
+                   where id_tip = 2 and task_users.id_task = tasks.id_task
+                ) as name_client,
+                (select name from task_users join users using (id_user)
+                   where id_tip = 3 and task_users.id_task = tasks.id_task
+                ) as name_iniciator,
+                (select name from task_users join users using (id_user)
+                   where id_tip = 4 and task_users.id_task = tasks.id_task
+                ) as name_controller,
+                type_result.name as name_result,
+                type_report.name as name_report,
+                penalty,
+                date_format(data_execut, "%d-%m-%Y") as data_execut,
+                date_format(data_client, "%d-%m-%Y") as data_client,
+                charges_penalty,
+                data_end as date_end
+              from 
+                task_users 
+                join tasks using (id_task) 
+                left join (
+                            select
+                                id_task, sum(penalty) as charges_penalty
+                            from
+                                penaltys
+                            group by
+                                id_task
+                ) as s_penalty using (id_task)
+                join conditions using (id_condition)
+                join type_report using (id_report)
+                join type_result using (id_result)
+              where
+                task_users.id_user = :id_user
+              order by 
+                date_end, 
+                charges_penalty desc
+        ';
+
+        return $this->db->getList($query, ['id_user' => $id_user]);
     }
 }
 

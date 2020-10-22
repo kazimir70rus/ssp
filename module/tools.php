@@ -14,6 +14,15 @@ Class Tools
     }
 
 
+    static function save_CSV(&$content, $filename)
+    {
+        header('Content-type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+    }
+
+
     static function save_XML(&$content, $filename)
     {
         header('Content-type: text/xml');

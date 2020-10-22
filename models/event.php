@@ -30,18 +30,21 @@ Class Event
 
     function add($event)
     {
-        // возможно в массиве лишня переменная, которая выдаст ошибку при вставке
-        if (isset($event['penalty'])) {
-            unset($event['penalty']);
-        }
+        $query = '
+            insert into events 
+                (id_task, id_user, id_action, comment, dt_wish, dt_create) 
+            values 
+                (:id_task, :id_user, :id_action, :comment, :dt_wish, :dt_create)
+        ';
 
-        if (isset($event['dt'])) {
-            $query = 'insert into events (id_task, id_user, id_action, comment, dt_wish) values (:id_task, :id_user, :id_action, :comment, :dt)';
-        } else {
-            $query = 'insert into events (id_task, id_user, id_action, comment) values (:id_task, :id_user, :id_action, :comment)';
-        }
-
-        return $this->db->insertData($query, $event);
+        return $this->db->insertData($query, [
+                                                'id_task'   => $event['id_task'],
+                                                'id_user'   => $event['id_user'],
+                                                'id_action' => $event['id_action'],
+                                                'comment'   => $event['comment'],
+                                                'dt_wish'   => $event['dt'] ?? NULL,
+                                                'dt_create' => $event['dt_create'] ?? date('Y-m-d'),
+                                             ]);
     }
 }
 
