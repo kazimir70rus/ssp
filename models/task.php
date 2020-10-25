@@ -123,6 +123,9 @@ Class Task
         // проверим просроченные задачи
         $this->checkExpired($id_user);
 
+        // проверим потребителей
+        $this->penaltyClient($id_user);
+
         // формируем строку-шаблон для поиска
         $seek_str = trim($data['seek_str']);
 
@@ -224,22 +227,85 @@ Class Task
     }
 
 
+    // начисление штрафных баллов за просроченную задачу
+    // по умолчанию начисление производим на учетную запись исполнителя
+    function accruePenalty($id_task, $dt, $id_tip = 1)
+    {
+        $query = '
+            insert into penaltys (id_task, id_user, penalty, dt)
+            values(
+                :id_task, 
+                (select id_user from task_users where id_tip = :id_tip and id_task = :id_task), 
+                (select penalty from tasks where id_task = :id_task),
+                :dt
+            )
+        ';
+
+        return $this->db->insertData($query, ['id_task' => $id_task, 'id_tip' => $id_tip, 'dt' => $dt]);
+    }
+    
+
     // начисление штрафных баллов потребителю за затягивание сроков принятия задачи
-    function penaltyClient()
+    // если с момента отчета испонителя прошло более рабочих 3-х дней, 
+    // а потребитель не подтвердил, начисление ему штрафа
+    function penaltyClient($id_user)
     {
         // список задач которые ожидают принятия потребителем
+        $query = '
+            select 
+                id_task, data_execut, id_user, penalty
+            from
+                tasks
+                join task_users using (id_task)
+            where
+                id_task in (select id_task from task_users where id_user = :id_user)
+                and id_condition = 3
+                and id_tip = 2
+        ';
 
-        /*
-        select 
-            id_task, date_add(data_execut, interval 3 day) as data_penalty, id_user, penalty
-        from
-            tasks
-            join task_users using (id_task)
-        where
-            id_task in (select id_task from task_users where id_user = @id_user)
-            and id_condition = 3
-            and id_tip = 2
-        */
+        $tasks = $this->db->getList($query, ['id_user' => $id_user]);
+
+        $current_dt = \DateTime::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s'));
+
+        // подготавливаем переменные для записи в историю событий
+        $events = new \ssp\models\Event($this->db);
+        $event = [
+            'id_action' => 22,
+            'comment'   => '',
+            'id_user'   => 11,
+        ];
+
+        foreach ($tasks as $one) {
+
+            $event['id_task'] = $one['id_task'];
+
+            $data_execut = \DateTime::createFromFormat('Y-m-d H:i:s', $one['data_execut']);
+            
+            $counter = 0;
+
+            while ($data_execut <= $current_dt) {
+
+                if($counter == 3) {
+                    $counter = 0;
+
+                    // добавляем баллы
+                    if ($this->accruePenalty($one['id_task'], $data_execut->format('Y-m-d'), 2) > 0) {
+                        // добавляем событие в историю
+                        $event['dt_create'] = $data_execut->format('Y-m-d');
+                        $events->add($event);
+                    }
+                }
+
+                $data_execut->add(new \DateInterval('P1D'));
+
+                // выходные пропускаем
+                if (($data_execut->format('N') == '6') || ($data_execut->format('N') == '7')) {
+                    continue;
+                }
+
+                ++$counter;
+            }
+        }
     }
 
 
@@ -672,24 +738,6 @@ Class Task
         }
     }
 
-
-    // начисление штрафных баллов за просроченную задачу
-    // начисление производим на учетную запись исполнителя
-    function accruePenalty($id_task, $dt, $id_tip = 1)
-    {
-        $query = '
-            insert into penaltys (id_task, id_user, penalty, dt)
-            values(
-                :id_task, 
-                (select id_user from task_users where id_tip = :id_tip and id_task = :id_task), 
-                (select penalty from tasks where id_task = :id_task),
-                :dt
-            )
-        ';
-
-        return $this->db->insertData($query, ['id_task' => $id_task, 'id_tip' => $id_tip, 'dt' => $dt]);
-    }
-    
 
     //ищет просроченные задачи у заданного пользователя и переносит их
     function checkExpired($id_user)
