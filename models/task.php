@@ -145,7 +145,7 @@ Class Task
                 $filter = ' and charges_penalty > 0 ';
                 break;
             case 3:
-                $filter = ' and id_condition in (3, 5, 2) ';
+                $filter = ' and id_condition in (3, 5, 2, 11) ';
                 break;
             case 4:
                 $filter = ' and id_condition in (' . TASK_CANCEL . ', ' . TASK_END .') ';
