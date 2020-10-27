@@ -14,11 +14,17 @@ Class Doks
 
 
     // формируем список файлов прикрипленных к задаче
-    function getList($id_task)
+    function getList($id_task, $id_user)
     {
-        $query = 'select id_dok, id_author, filename from uploaddoks where id_task = :id_task order by filename';
+        $query = '
+            select
+                id_dok, id_author, filename, if(id_author = :id_user, 1, NULL) as enable_rm
+            from
+                uploaddoks where id_task = :id_task
+            order by
+                filename';
 
-        return $this->db->getList($query, ['id_task' => $id_task]);
+        return $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
 
 
@@ -86,5 +92,45 @@ Class Doks
 
         return count($paths);
     }
+
+
+    // удаляет документ
+    function removeDok($id_dok, $id_user)
+    {
+        // заранее узнаем информацию о файле
+        $query = '
+            select
+                id_task, filename
+            from
+                uploaddoks
+            where
+                id_dok = :id_dok
+                and id_author = :id_user
+        ';
+
+        $result = $this->db->getRow($query, ['id_dok' => $id_dok, 'id_user' => $id_user]);
+
+        if (!count($result)) {
+            return false;
+        }
+
+        $query = '
+            delete from
+                uploaddoks
+            where
+                id_dok = :id_dok
+                and id_author = :id_user
+        ';
+
+        if ($this->db->updateData($query, ['id_dok' => $id_dok, 'id_user' => $id_user]) > 0) {
+            // из базы файл удален, удаляем его физически
+            $fullpath = 'attachdoks/' . $result['id_task'] . '/' . $result['filename'];
+
+            if (file_exists($fullpath)) {
+                unlink($fullpath);
+            }
+        }
+    }
 }
+
 

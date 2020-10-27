@@ -102,17 +102,26 @@
     </form>
     <br>
     <div>
-        <table>
+        <table style="min-width: 270px;">
         <caption>загруженные документы</caption>
             <template v-for="dok in upload_files">
                 <tr>
                     <td><a v-bind:href="'<?=BASE_URL?>attachdoks/<?=$id_task?>/' + dok.filename">{{dok.filename}}</a></td>
+                    <td style="padding: 0 1rem; width: 1rem;">
+                        <div v-if="dok.enable_rm">
+                            <button
+                                type="button"
+                                v-on:click="removedok(dok.id_dok)"
+                                class="input input_button"
+                                style="width: 2rem; max-width: 2rem">X</button>
+                        </div>
+                    </td>
                 </tr>
             </template>
         </table>
         <form enctype="multipart/form-data" action="" method="post">
             <input type="hidden" name="id_task" value="<?=$id_task?>">
-            <input type="file" name="userfile[]" class="input input_text" v-model="name" required>
+            <input type="file" name="userfile[]" class="input input_text" v-model="name" required style="">
             <button type="button" v-on:click="clear()" class="input input_button" style="width: 2rem; max-width: 2rem">X</button><br>
             <input type="submit" name="upload" value="Добавить файл" class="input input_button">
         </form>
@@ -224,6 +233,16 @@ var app = new Vue({
             this.$http.get(this.server + 'getlistfiles/' + this.id_task).then(
                 function (otvet) {
                     this.upload_files = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
+        removedok: function (id_dok) {
+            this.$http.get(this.server + 'removedok/' + id_dok).then(
+                function (otvet) {
+                    this.getListFiles();
                 },
                 function (err) {
                     console.log(err);
