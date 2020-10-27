@@ -2,9 +2,13 @@
 
 $id_task = (int)$param[1];
 
-// обработка загрузки файла
-$uploads = new \ssp\models\Doks($db);
+// проверка если пользователь не имеет доступа к этой задаче, список файлов не выводить
+if ((new \ssp\models\Task($db))->checkAccess($id_task, $id_user->getValue())) {
+    // получаем список файлов приклипленных к этой задаче
+    $upload_doks = (new \ssp\models\Doks($db))->getList($id_task);
+} else {
+    $uploads_doks = [];
+}
 
-// получаем список файлов приклипленных к этой задаче
-\ssp\module\Tools::send_json($uploads->getList($id_task));
+\ssp\module\Tools::send_json($upload_doks);
 
