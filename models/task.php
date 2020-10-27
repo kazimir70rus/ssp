@@ -364,32 +364,6 @@ Class Task
                     ->db
                     ->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
 
-        // если у задачи инициатор и потребитель одно лицо, то контроллер может подтвердить выполнение
-        $query = '
-            select
-                count(distinct id_user) as cnt,
-                (select id_user from task_users where id_task = :id_task and id_tip = 4) as id_controller
-            from
-                tasks join task_users using (id_task)
-            where
-                id_task = :id_task 
-                and id_tip in (2, 3)
-                and id_condition = 3
-        ';
-
-        $data = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (((int)$data['cnt'] == 1) && ($data['id_controller'] == $id_user)) {
-            // инициатор и потребитель одно лицо
-            // добавляем действие
-            $result[] = [
-                'id_action' => 13,
-                'name' => 'подтвердить выполнение',
-                'need_dt' => 0,
-                'change_penalty' => 0,
-            ];
-        }
-
         // для выполнения некоторых действий нужно выполнение определенных условий
         foreach ($result as $index => $action) {
             if (isset($action['id_action']) && ((int)$action['id_action'] == 12)) {
