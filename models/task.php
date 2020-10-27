@@ -457,6 +457,13 @@ Class Task
 
             if ($event['id_action'] == 12) {
                 $this->changeDateExec($event['id_task']);
+
+                // проверить, если инициатор и потребитель одно лицо,
+                // то изменить состояние задачи на 11 (подтверждение инициатором или контроллером)
+                if ($this->executorIsClient($event['id_task'])) {
+                    $query = 'update tasks set id_condition = 11 where id_task = :id_task';
+                    $this->db->updateData($query, ['id_task' => $event['id_task']]);
+                }
             }
 
             if ($event['id_action'] == 13) {
@@ -786,17 +793,22 @@ Class Task
 
 
     // возвращает истину есть инициатор и потребитель одно лицо, и фальш в противном случае
-    function executorIsClient($id_task, $id_user)
+    function executorIsClient($id_task)
     {
-        $query = 'select count(id_user) as cnt from task_users
-            where id_task = :id_task and id_user = :id_user and id_tip in (2, 3)';
+        $query = '
+            select
+                count(distinct id_user) as cnt
+            from
+                task_users
+            where
+                id_task = :id_task and id_tip in (2, 3)
+        ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
 
-        if ($result) {
-            if ((int)$result['cnt'] == 2) {
-                return true;
-            }
+        if (is_array($result) && ((int)$result['cnt'] == 1)) {
+
+            return true;
         }
 
         return false;

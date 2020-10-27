@@ -31,16 +31,6 @@ if (isset($_POST['submit'])) {
             exit;
         }
 
-        // если потребитель и инициатор одно лицо, и потребитель подтверждает выполнение
-        // и сразу генерируем подтверждении инициатором
-        if (
-            ((int)$event['id_action'] == 13) &&
-            ($task->executorIsClient($event['id_task'], $event['id_user']))
-        ) {
-            $event['id_action'] = 19;
-            $task->updateCondition($event);
-        }
-
         // после выполнения действия перенеправление на главную страницу
         header('Location: ' . BASE_URL);
         exit;
