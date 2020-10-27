@@ -246,14 +246,14 @@ Class Task
     
 
     // начисление штрафных баллов потребителю за затягивание сроков принятия задачи
-    // если с момента отчета испонителя прошло более рабочих 3-х дней, 
+    // если с момента отчета испонителя прошло более 2 дня и 8 часов, 
     // а потребитель не подтвердил, начисление ему штрафа
     function penaltyClient($id_user)
     {
         // список задач которые ожидают принятия потребителем
         $query = '
             select 
-                id_task, data_execut, id_user, penalty
+                id_task, date_format(data_execut, "%Y-%m-%d") as data_execut, id_user, penalty
             from
                 tasks
                 join task_users using (id_task)
@@ -265,7 +265,7 @@ Class Task
 
         $tasks = $this->db->getList($query, ['id_user' => $id_user]);
 
-        $current_dt = \DateTime::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s'));
+        $current_dt = \DateTime::createFromFormat('Y-m-d H:i', date('Y-m-d H:i'));
 
         // подготавливаем переменные для записи в историю событий
         $events = new \ssp\models\Event($this->db);
@@ -279,31 +279,28 @@ Class Task
 
             $event['id_task'] = $one['id_task'];
 
-            $data_execut = \DateTime::createFromFormat('Y-m-d H:i:s', $one['data_execut']);
+            $data_execut = \DateTime::createFromFormat('Y-m-d', $one['data_execut']);
             
-            $counter = 0;
+            // отработаем попадания на выходные
+            switch ($data_execut->format('N')) {
+                case '4':
+                    $data_execut->add(new \DateInterval('P4DT8H'));
+                    break;
+                case '5':
+                    $data_execut->add(new \DateInterval('P3DT8H'));
+                    break;
+                default:
+                    $data_execut->add(new \DateInterval('P2DT8H'));
+                    break;
+            }
 
-            while ($data_execut <= $current_dt) {
-
-                if($counter == 3) {
-                    $counter = 0;
-
-                    // добавляем баллы
-                    if ($this->accruePenalty($one['id_task'], $data_execut->format('Y-m-d'), 2) > 0) {
-                        // добавляем событие в историю
-                        $event['dt_create'] = $data_execut->format('Y-m-d');
-                        $events->add($event);
-                    }
+            if ($data_execut < $current_dt) {
+                // потребитель затягивает сроки
+                if ($this->accruePenalty($one['id_task'], $current_dt->format('Y-m-d'), 2) > 0) {
+                    // добавляем событие в историю
+                    $event['dt_create'] = $current_dt->format('Y-m-d');
+                    $events->add($event);
                 }
-
-                $data_execut->add(new \DateInterval('P1D'));
-
-                // выходные пропускаем
-                if (($data_execut->format('N') == '6') || ($data_execut->format('N') == '7')) {
-                    continue;
-                }
-
-                ++$counter;
             }
         }
     }
