@@ -1,17 +1,10 @@
 <?php
 
+require_once 'configuration/db.php';
+
+require_once 'configuration/global.php';
+
 require_once 'module/autoload.php';
-
-define('UID', 'ssp');
-define('BASE_URL', '/ssp/');
-
-$config =
-[
-    'srv'  => '127.0.0.1',
-    'user' => '046327307_tasker',
-    'pass' => '01478569',
-    'db'   => 'msfm_tasker',
-];
 
 date_default_timezone_set('Asia/Novosibirsk');
 
