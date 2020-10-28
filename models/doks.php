@@ -13,14 +13,20 @@ Class Doks
     }
 
 
-    // формируем список файлов прикрипленных к задаче
+    // формируем список файлов прикрипленных к задаче,
+    // сразу формируем признак возможности удаления задачи
     function getList($id_task, $id_user)
     {
         $query = '
             select
-                id_dok, id_author, filename, if(id_author = :id_user, 1, NULL) as enable_rm
+                id_dok,
+                uploaddoks.id_author,
+                filename,
+                if((uploaddoks.id_author = :id_user) and id_condition not in (6, 7, 4), 1, NULL) as enable_rm
             from
-                uploaddoks where id_task = :id_task
+                uploaddoks join tasks using (id_task)
+            where
+                id_task = :id_task
             order by
                 filename';
 
@@ -97,15 +103,16 @@ Class Doks
     // удаляет документ
     function removeDok($id_dok, $id_user)
     {
-        // заранее узнаем информацию о файле
+        // заранее узнаем информацию о файле, задача при этом должна быть в определенном состоянии
         $query = '
             select
                 id_task, filename
             from
-                uploaddoks
+                uploaddoks join tasks using (id_task)
             where
                 id_dok = :id_dok
                 and id_author = :id_user
+                and id_condition not in (6, 7, 4)
         ';
 
         $result = $this->db->getRow($query, ['id_dok' => $id_dok, 'id_user' => $id_user]);
