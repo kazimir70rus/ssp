@@ -415,13 +415,16 @@ Class Task
     {
         // проверим на удаление
         if ((int)$event['id_action'] == 20) {
-            $this->deleteTask($event['id_task']);
+
+            return $this->deleteTask($event['id_task']);
         }
 
         // изменение состояния задачи
         $query = '
             update tasks
-                set id_condition = (select id_condition from actions where id_action = :id_action)
+                set id_condition = 
+                    if((select id_condition from actions where id_action = :id_action) = 12,
+                        id_condition, (select id_condition from actions where id_action = :id_action))
             where
                 id_task = :id_task
                 and id_condition in 
@@ -436,7 +439,7 @@ Class Task
                                             'id_user'   => $event['id_user'],
                                         ]);
 
-        if (($result > 0) || (int)$event['id_action'] == 17) {
+        if (($result > 0) || ((int)$event['id_action'] == 17) || ((int)$event['id_action'] == 23)) {
 
             // изменение параметров задачи
             // если id_action = 5, то вставляем последнюю дату из истории
@@ -445,6 +448,11 @@ Class Task
                 $dt = $this->getRequiredDate($event['id_task']);
                 // переносим
                 $this->changeDateEnd($event['id_task'], $dt['dt_wish']);
+            }
+
+            if ($event['id_action'] == 23) {
+                // переносим дату без согласования
+                $this->changeDateEnd($event['id_task'], $event['dt']); 
             }
 
             // разрешить перенос, изменим штрафные баллы
