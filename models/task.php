@@ -363,55 +363,52 @@ Class Task
 
         // для выполнения некоторых действий нужно выполнение определенных условий
         foreach ($result as $index => $action) {
-            if (
-                isset($action['id_action']) && 
-                (((int)$action['id_action'] == 1) || ((int)$action['id_action'] == 12))) {
+
+            if (((int)$action['id_action'] == 1) || ((int)$action['id_action'] == 12)) {
 
                 // проверим тип отчета у данной задачи, требуются ли файлы
                 $query = 'select need_file from tasks join type_report using (id_report) where id_task = :id_task';
 
                 $data = $this->db->getRow($query, ['id_task' => $id_task]);
 
-                if ((int)$data['need_file'] == 1) {
+                if ((int)$data['need_file'] == 0) {
+                    continue;
+                }
 
-                    // проверим были ли переносы
+                // проверим были ли переносы
+                $query = '
+                    select
+                        id_event
+                    from
+                        events
+                    where
+                        id_task = :id_task and id_action = 5
+                    order by
+                        dt_create desc limit 1
+                ';
+                $data = $this->db->getRow($query, ['id_task' => $id_task]);
+
+                if (is_array($data) && count($data)) {
                     $query = '
                         select
-                            id_event
+                            count(*) as cnt
                         from
-                            events
+                            uploaddoks
                         where
-                            id_task = :id_task and id_action = 5
-                        order by
-                            dt_create desc limit 1
+                            id_task = :id_task
+                            and id_author = :id_user
+                            and filename in (
+                                select comment from events where id_action = 21 and id_event > :id_event)
                     ';
+                    $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_event' => $data['id_event']]);
+                } else {
+                    // для закрытия задачи необходимо наличие файла под авторством исполнителя
+                    $query = 'select count(*) as cnt from uploaddoks where id_task = :id_task and id_author = :id_user';
+                    $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+                }
 
-                    $data = $this->db->getRow($query, ['id_task' => $id_task]);
-
-                    if (count($data)) {
-                        $query = '
-                            select
-                                count(*) as cnt
-                            from
-                                uploaddoks
-                            where
-                                id_task = :id_task
-                                and id_author = :id_user
-                                and filename in (
-                                    select comment from events where id_action = 21 and id_event > :id_event)
-                        ';
-                        $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_event' => $data['id_event']]);
-
-                    } else {
-                        // для закрытия задачи необходимо наличие файла под авторством исполнителя
-                        $query = 'select count(*) as cnt from uploaddoks where id_task = :id_task and id_author = :id_user';
-                        $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
-                    }
-
-
-                    if ((int)$data['cnt'] == 0) {
-                        unset($result[$index]);
-                    }
+                if ((int)$data['cnt'] == 0) {
+                    unset($result[$index]);
                 }
             }
         }
