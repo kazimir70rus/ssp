@@ -242,6 +242,7 @@ var app = new Vue({
         removedok: function (id_dok) {
             this.$http.get(this.server + 'removedok/' + id_dok).then(
                 function (otvet) {
+                    this.getActions();
                     this.getListFiles();
                 },
                 function (err) {
