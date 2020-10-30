@@ -20,7 +20,7 @@ if (isset($_POST['submit'])) {
     ];
 
     if (\DateTime::createFromFormat('Y-m-d', $_POST['dt'] ?? '')) {
-        $event['dt'] = $_POST['dt'];
+        $event['dt'] = \ssp\module\Datemod::dateNoWeekends($_POST['dt']);
     }
 
     if ($task->updateCondition($event) > 0) {
