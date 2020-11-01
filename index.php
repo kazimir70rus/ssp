@@ -1,10 +1,8 @@
 <?php
 
-require_once 'configuration/db.php';
+require_once 'module/autoload.php';
 
 require_once 'configuration/global.php';
-
-require_once 'module/autoload.php';
 
 date_default_timezone_set('Asia/Novosibirsk');
 
@@ -26,7 +24,7 @@ $id_user = new \ssp\module\SessionVar('id_user');
 $name_user = new \ssp\module\SessionVar('name_user');
 $position_user = new \ssp\module\SessionVar('position_user');
 
-$db = new \ssp\module\Db($config);
+$db = new \ssp\module\Db(new \ssp\configuration\DB);
 
 if (!$id_user->getValue()) {
     $action = 'login';

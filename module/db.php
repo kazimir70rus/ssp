@@ -10,8 +10,8 @@ Class Db
 
     function __construct($config)
     {
-        $dsn = "mysql:host={$config['srv']};dbname={$config['db']};charset=utf8";
-        $this->db = new \PDO($dsn, $config['user'], $config['pass']);
+        $dsn = 'mysql:host=' . $config::SRV . ';dbname=' . $config::DB . ';charset=utf8';
+        $this->db = new \PDO($dsn, $config::USER, $config::PASS);
 
         return $this;
     }
