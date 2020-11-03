@@ -103,7 +103,8 @@
             <th style="width: 3rem">пот.</th>
             <th style="width: 3rem">вес</th>
             <th style="width: 25rem">состояние</th>
-            <th style="width: 2rem">Ш</th>
+            <th style="width: 2rem">ШИ</th>
+            <th style="width: 2rem">ШП</th>
         </tr>
         <template v-for="task in tasks_for_exe">
             <tr>
@@ -118,7 +119,8 @@
                 <td>{{task.name_client}}</td>
                 <td>{{task.penalty}}</td>
                 <td>{{task.condition}}</td>
-                <td>{{task.charges_penalty}}</td>
+                <td>{{task.penalty_executor}}</td>
+                <td>{{task.penalty_client}}</td>
             </tr>
         </template>
     </table>
@@ -134,7 +136,8 @@
             <th style="width: 3rem">пот.</th>
             <th style="width: 3rem">вес</th>
             <th style="width: 25rem">состояние</th>
-            <th style="width: 2rem">Ш</th>
+            <th style="width: 2rem">ШИ</th>
+            <th style="width: 2rem">ШП</th>
         </tr>
         <template v-for="task in tasks_for_ctr">
             <tr>
@@ -150,7 +153,8 @@
                 <td>{{task.name_client}}</td>
                 <td>{{task.penalty}}</td>
                 <td>{{task.condition}}</td>
-                <td>{{task.charges_penalty}}</td>
+                <td>{{task.penalty_executor}}</td>
+                <td>{{task.penalty_client}}</td>
             </tr>
         </template>
     </table>

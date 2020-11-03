@@ -52,8 +52,12 @@
             <td><?=$task_info['data_client']?></td>
         </tr>
         <tr>
-            <td>Штрафные баллы:</td>
-            <td><?=$task_info['penalty']?></td>
+            <td>Штрафные баллы исполнителю:</td>
+            <td><?=$task_info['penalty_executor']?></td>
+        </tr>
+        <tr>
+            <td>Штрафные баллы потребителю:</td>
+            <td><?=$task_info['penalty_client']?></td>
         </tr>
         <tr>
             <td>Вид результата:</td>

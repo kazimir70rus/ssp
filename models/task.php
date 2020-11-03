@@ -181,16 +181,33 @@ Class Task
             }
         } else {
             $date_seek = '';
-        }    
+        }
 
         $query = 'select distinct
                     id_task,
-                    tasks.name as name, 
+                    tasks.name as name,
                     date_format(data_end, "%d-%m-%Y") as data_end,
                     data_end as date_end,
-                    conditions.name as `condition`, 
-                    tasks.id_condition as id_condition, 
-                    charges_penalty,
+                    conditions.name as `condition`,
+                    tasks.id_condition as id_condition,
+                    (
+                        select
+                            sum(penalty)
+                        from
+                            penaltys as p
+                        where
+                            p.id_task = tasks.id_task
+                            and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 1)
+                    ) as penalty_executor,
+                    (
+                        select
+                            sum(penalty)
+                        from
+                            penaltys as p
+                        where
+                            p.id_task = tasks.id_task
+                            and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 2)
+                    ) as penalty_client,
                     if(id_periodic = 0, "Р", "П") as periodicity,
                     (select name from task_users join users using (id_user)
                        where id_tip = 1 and task_users.id_task = tasks.id_task
@@ -200,26 +217,19 @@ Class Task
                     ) as name_client,
                     penalty,
                     date_format(data_create, "%d-%m-%Y %H:%i") as data_create
-                  from 
-                    task_users 
-                    join tasks using (id_task) 
-                    left join (
-                                select
-                                    id_task, sum(penalty) as charges_penalty
-                                from
-                                    penaltys
-                                group by
-                                    id_task
-                    ) as s_penalty using (id_task)
+                  from
+                    task_users
+                    join tasks using (id_task)
                     join conditions using (id_condition)
-                  where 
-                    ' . $is_executor . ' 
-                    ' . $filter . ' 
+                  where
+                    ' . $is_executor . '
+                    ' . $filter . '
                     ' . $date_seek . '
                     and tasks.name like :seek_str
-                  order by 
-                    date_end, 
-                    charges_penalty desc';
+                  order by
+                    date_end,
+                    penalty_executor desc,
+                    penalty_client desc';
 
         return $this
                     ->db
@@ -234,8 +244,8 @@ Class Task
         $query = '
             insert into penaltys (id_task, id_user, penalty, dt)
             values(
-                :id_task, 
-                (select id_user from task_users where id_tip = :id_tip and id_task = :id_task), 
+                :id_task,
+                (select id_user from task_users where id_tip = :id_tip and id_task = :id_task),
                 (select penalty from tasks where id_task = :id_task),
                 :dt
             )
@@ -243,10 +253,10 @@ Class Task
 
         return $this->db->insertData($query, ['id_task' => $id_task, 'id_tip' => $id_tip, 'dt' => $dt]);
     }
-    
+
 
     // начисление штрафных баллов потребителю за затягивание сроков принятия задачи
-    // если с момента отчета испонителя прошло более 2 дня и 8 часов, 
+    // если с момента отчета испонителя прошло более 2 дня и 8 часов,
     // а потребитель не подтвердил, начисление ему штрафа
     function penaltyClient($id_user)
     {
@@ -280,7 +290,7 @@ Class Task
             $event['id_task'] = $one['id_task'];
 
             $data_execut = \DateTime::createFromFormat('Y-m-d', $one['data_execut']);
-            
+
             // отработаем попадания на выходные
             switch ($data_execut->format('N')) {
                 case '4':
@@ -322,7 +332,24 @@ Class Task
                 date_format(data_client, "%d-%m-%Y %H:%i") as data_client,
                 c.name as state,
                 penalty,
-                (select sum(penalty) from penaltys where id_task = :id_task) as charges_penalty,
+                (
+                    select
+                        sum(penalty)
+                    from
+                        penaltys as p
+                    where
+                        p.id_task = tasks.id_task
+                        and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 1)
+                ) as penalty_executor,
+                (
+                    select
+                        sum(penalty)
+                    from
+                        penaltys as p
+                    where
+                        p.id_task = tasks.id_task
+                        and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 2)
+                ) as penalty_client,
                 type_report.name as report_name,
                 type_result.name as result_name,
                 if(id_periodic = 0, "Разовая", "Периодическая") as periodicity,
@@ -720,7 +747,7 @@ Class Task
                 and id_condition = 9
                 and id_tip = 1
                 and id_user = :id_user';
-        
+
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
 
@@ -761,7 +788,7 @@ Class Task
                     'id_user'   => 11,
                     'dt_create' => $new_dt_end,
                 ];
-                
+
                 $events = new \ssp\models\Event($this->db);
 
                 // добавить событие в журнал
@@ -785,14 +812,14 @@ Class Task
     function checkExpired($id_user)
     {
         $query = '
-            select distinct 
-                id_task, 
-                data_end, 
-                id_condition 
-            from 
-                task_users 
-                join tasks using (id_task) 
-            where 
+            select distinct
+                id_task,
+                data_end,
+                id_condition
+            from
+                task_users
+                join tasks using (id_task)
+            where
                 id_user = :id_user
         ';
 
@@ -913,9 +940,9 @@ Class Task
     // возвращает период повторений для указанной задачи
     function getRepetition($id_task)
     {
-        $query = 'select 
+        $query = 'select
                         if(repetition is null, 1, repetition) as repetition
-                  from 
+                  from
                         tasks left join periodic using (id_periodic)
                   where
                         id_task = :id_task';
@@ -957,7 +984,7 @@ Class Task
                 }
             }
         }
-        
+
         // завершаем транзакцию
         if ($result) {
             $this->db->commit();
@@ -979,30 +1006,30 @@ Class Task
 
         $query = '
             delete from
-                task_users 
-            where 
+                task_users
+            where
                 id_task in (
-                    select 
-                        id_task 
-                    from 
-                        tasks 
-                    where 
-                        data_end >= :cur_date and 
+                    select
+                        id_task
+                    from
+                        tasks
+                    where
+                        data_end >= :cur_date and
                         id_condition in (9, 10) and
                         id_periodic = (select id_periodic from tasks where id_task = :id_task))';
 
         if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
             $query = '
-                delete from 
+                delete from
                     events
-                where 
+                where
                     id_task in (
-                        select 
-                            id_task 
-                        from 
-                            tasks 
-                        where 
+                        select
+                            id_task
+                        from
+                            tasks
+                        where
                             data_end > :cur_date and
                             id_condition in (9, 10) and
                             id_periodic = (select id_periodic from tasks where id_task = :id_task))';
@@ -1031,9 +1058,9 @@ Class Task
                     if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
                         $query = '
-                            delete from 
-                                tasks 
-                            where 
+                            delete from
+                                tasks
+                            where
                                 data_end > :cur_date and
                                 id_condition in (9, 10) and
                                 id_periodic = (select id_periodic from tasks where id_task = :id_task)';
@@ -1046,7 +1073,7 @@ Class Task
                 }
             }
         }
-        
+
         // завершаем транзакцию
         if ($result) {
             $this->db->commit();
@@ -1102,7 +1129,7 @@ Class Task
                 date_format(data_create, "%H:%i") as time_create,
                 date_format(data_end, "%d-%m-%Y") as data_end,
                 tasks.name as name, 
-                conditions.name as `condition`, 
+                conditions.name as `condition`,
                 (select name from task_users join users using (id_user)
                    where id_tip = 1 and task_users.id_task = tasks.id_task
                 ) as name_executor,
@@ -1122,9 +1149,9 @@ Class Task
                 date_format(data_client, "%d-%m-%Y") as data_client,
                 charges_penalty,
                 data_end as date_end
-              from 
-                task_users 
-                join tasks using (id_task) 
+              from
+                task_users
+                join tasks using (id_task)
                 left join (
                             select
                                 id_task, sum(penalty) as charges_penalty
@@ -1138,8 +1165,8 @@ Class Task
                 join type_result using (id_result)
               where
                 task_users.id_user = :id_user
-              order by 
-                date_end, 
+              order by
+                date_end,
                 charges_penalty desc
         ';
 
