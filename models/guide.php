@@ -26,7 +26,7 @@ Class Guide
         $seek_str = implode('%', $keywords);
         $seek_str = '%' . $seek_str . '%';
 
-        $query = 'select id_result, name from type_result where name like :seek_str order by name limit 5';
+        $query = 'select id_result, name from type_result where name like :seek_str and visible = 1 order by name limit 5';
 
         return $this->db->getList($query, ['seek_str' => $seek_str]);
     }
@@ -40,8 +40,10 @@ Class Guide
         $result = $this->db->getRow($query, ['name' => $name]);
 
         if (is_array($result)) {
+
             return $result['id_result'];
         } else {
+
             return $this->addResult($name);
         }
     }
@@ -55,10 +57,10 @@ Class Guide
         $result = $this->db->getRow($query, ['id_result' => $id_result]);
 
         if (is_array($result)) {
-         
+
             return $result['name'];
         } else {
- 
+
             return '';
         }
     }
