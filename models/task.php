@@ -854,7 +854,7 @@ Class Task
     }
 
 
-    // возвращает истину есть инициатор и потребитель одно лицо, и фальш в противном случае
+    // возвращает истину если инициатор и потребитель одно лицо, и фальш в противном случае
     function executorIsClient($id_task)
     {
         $query = '
@@ -874,6 +874,50 @@ Class Task
         }
 
         return false;
+    }
+
+
+    // проверям доступ пользователя к задаче
+    function checkAccess($id_task, $id_user)
+    {
+        $role = $this->getTip($id_task, $id_user);
+
+        if (count($role) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // возвращает роль или роли пользователя в задаче
+    function getTip($id_task, $id_user)
+    {
+        $query = '
+            select
+                id_tip
+            from
+                task_users
+            where
+                id_task = :id_task
+                and id_user = :id_user
+        ';
+
+        $result = $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
+
+        if (is_array($result) && count($result)) {
+            // т.к. ролей может быть несколько сформируем массив ролей
+            $role = [];
+
+            foreach ($result as $row) {
+                $role[] = (int)$row['id_tip'];
+            }
+
+            return $role;
+        } else {
+
+            return [];
+        }
     }
 
 
@@ -1102,21 +1146,6 @@ Class Task
                 )';
 
         return $this->db->getList($query, ['id_user' => $id_user]);
-    }
-
-
-    // проверям доступ пользователя к задаче
-    function checkAccess($id_task, $id_user)
-    {
-        $query = 'select id_tip from task_users where id_user = :id_user and id_task = :id_task';
-
-        $result = $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
-
-        if (count($result) > 0) {
-            return true;
-        }
-
-        return false;
     }
 
 

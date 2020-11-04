@@ -15,14 +15,15 @@ Class Doks
 
     // формируем список файлов прикрипленных к задаче,
     // сразу формируем признак возможности удаления задачи
-    function getList($id_task, $id_user)
+    function getList($id_task, $id_user, $printed = false)
     {
         $query = '
             select
                 id_dok,
                 uploaddoks.id_author,
                 filename,
-                if((uploaddoks.id_author = :id_user) and id_condition not in (6, 7, 4), 1, NULL) as enable_rm
+                if((uploaddoks.id_author = :id_user) and id_condition not in (6, 7, 4), 1, NULL) as enable_rm '
+                . (($printed) ? ', printed' : '') . '
             from
                 uploaddoks join tasks using (id_task)
             where
@@ -137,6 +138,31 @@ Class Doks
                 unlink($fullpath);
             }
         }
+    }
+
+
+    // меняем статус печати
+    function changePrintStatus($id_dok, $status)
+    {
+        $query = '
+            update uploaddoks
+                set printed = :status
+            where
+                id_dok = :id_dok
+        ';
+
+        return $this->db->updateData($query, ['id_dok' => $id_dok, 'status' => $status]);
+    }
+
+
+    // возвращает id_task к которому относится этот документ
+    function getIdTask($id_dok)
+    {
+        $query = 'select id_task from uploaddoks where id_dok = :id_dok';
+
+        $result = $this->db->getRow($query, ['id_dok' => $id_dok]);
+
+        return (int)$result['id_task'];
     }
 }
 

@@ -68,10 +68,6 @@
             <td><?=$task_info['report_name']?></td>
         </tr>
         <tr>
-            <td>Начисленные баллы:</td>
-            <td><?=$task_info['charges_penalty']?></td>
-        </tr>
-        <tr>
             <td>Состояние:</td>
             <td><?=$task_info['state']?></td>
         </tr>
@@ -108,9 +104,25 @@
     <div>
         <table style="min-width: 270px;">
         <caption>загруженные документы</caption>
-            <template v-for="dok in upload_files">
+            <tr>
+                <th>имя файла</th>
+                <th>распечатано</th>
+                <th></th>
+            </tr>
+            <template v-for="(dok, index) in upload_files">
                 <tr>
                     <td><a v-bind:href="'<?=BASE_URL?>attachdoks/<?=$id_task?>/' + dok.filename">{{dok.filename}}</a></td>
+                    <td style="text-align: center;">
+                        <div v-if="print_status">
+                            <input
+                                type="checkbox"
+                                v-model="dok.printed"
+                                v-bind:true-value="1"
+                                v-bind:false-value="0"
+                                v-on:click="is_printed(index)"
+                            >
+                        </div>
+                    </td>
                     <td style="padding: 0 1rem; width: 1rem;">
                         <div v-if="dok.enable_rm">
                             <button
@@ -164,6 +176,7 @@ var app = new Vue({
         name: '',
         upload_files: [],
         comment: '',
+        print_status: false,
     },
     watch: {
         id_action: function () {
@@ -230,12 +243,25 @@ var app = new Vue({
                 }
             );
         },
+        is_printed: function (index) {
+            const state = (this.upload_files[index].printed == '0') ? '1' : '0';
+            this.$http.post(this.server + 'dok_is_printed', {id_dok: this.upload_files[index].id_dok, printed: state}).then(
+                function (otvet) {
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
         clear: function () {
             this.name = '';
         },
         getListFiles: function () {
             this.$http.get(this.server + 'getlistfiles/' + this.id_task).then(
                 function (otvet) {
+                    // если в выдаче есть приззнак печати, выводим его
+                    this.print_status = (typeof otvet.data[0].printed == "undefined") ? false : true;
+
                     this.upload_files = otvet.data;
                 },
                 function (err) {
