@@ -953,6 +953,7 @@ Class Task
         $dt_en = \DateTime::createFromFormat('Y-m-d', $task_template['date_to']);
 
         $days = 0;
+        $offset = 0;
         // формируем строку для интервала
         switch ($task_template['repetition']) {
             case 2:
@@ -963,6 +964,12 @@ Class Task
                 break;
             case 4:
                 $interval = 'P1M';
+                $offset = (int)$dt_st->format('j') - 28;
+
+                if ($offset > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
+                }
+
                 break;
             case 7:
                 $interval = 'P3M';
@@ -989,8 +996,32 @@ Class Task
 
             // если задача ежедневная и выпадает на выходные, то ее не добавляем
             if (!(($task_template['repetition'] == 2) && (($dt_curr->format('N') == '6') || ($dt_curr->format('N') == '7')))) {
-                $task_template['data_begin'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
-                $task_template['data_end'] = \ssp\module\Datemod::dateNoWeekends($dt_curr->format('Y-m-d'));
+                
+                $dt_echo = \DateTime::createFromFormat('Y-m-d', $dt_curr->format('Y-m-d'));
+
+                switch ($offset) {
+                    case 3:
+                        $dm = (int)$dt_echo->format('t') - 28;
+                        $dt_echo->add(new \DateInterval('P' . $dm . 'D'));
+                        break;
+                    
+                    case 2:
+                        $dm = ((int)$dt_echo->format('t') === 28) ? 0 : 2;
+                        $dt_echo->add(new \DateInterval('P' . $dm . 'D'));
+                        break;
+                    
+                    case 1:
+                        $dm = ((int)$dt_echo->format('t') === 28) ? 0 : 1;
+                        $dt_echo->add(new \DateInterval('P' . $dm . 'D'));
+                        break;
+
+                    default:
+                        break;
+                }
+
+                $task_template['data_begin'] = \ssp\module\Datemod::dateNoWeekends($dt_echo->format('Y-m-d'));
+                $task_template['data_end'] = $task_template['data_begin'];
+
                 // добавляем задачу
                 $id_task = $this->add($task_template, $id_periodic);
 
