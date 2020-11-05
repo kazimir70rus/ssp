@@ -137,6 +137,16 @@ Class Doks
             if (file_exists($fullpath)) {
                 unlink($fullpath);
             }
+
+            // добавим запись в историю
+            $event = [
+                'id_task'   => $result['id_task'],
+                'id_action' => 24,
+                'comment'   => $result['filename'],
+                'id_user'   => $id_user,
+            ];
+
+            (new \ssp\models\Event($this->db))->add($event);
         }
     }
 

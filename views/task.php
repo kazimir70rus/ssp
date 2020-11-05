@@ -259,10 +259,12 @@ var app = new Vue({
         getListFiles: function () {
             this.$http.get(this.server + 'getlistfiles/' + this.id_task).then(
                 function (otvet) {
-                    // если в выдаче есть приззнак печати, выводим его
-                    this.print_status = (typeof otvet.data[0].printed == "undefined") ? false : true;
-
                     this.upload_files = otvet.data;
+                    
+                    if (this.upload_files.length > 0) {
+                        // если в выдаче есть признак печати, выводим его
+                        this.print_status = (typeof otvet.data[0].printed == "undefined") ? false : true;
+                    }
                 },
                 function (err) {
                     console.log(err);
