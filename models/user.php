@@ -55,7 +55,12 @@ Class User
 
     function getListSubordinate($id_parent)
     {
-        $query ='select id_user, name from users where id_parent = :id_parent order by name';
+        $query ='
+            (select id_user, name from users where id_user = :id_parent)
+            union
+            (select id_user, name from users where id_parent = :id_parent)
+            order by name
+        ';
 
         return $this
                     ->db

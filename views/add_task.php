@@ -169,6 +169,7 @@ var app = new Vue({
         iniciator: function () {
             this.getExecutors(this.iniciator);
             this.getControllers(this.iniciator);
+            this.getClients(this.iniciator);
         },
         name1: function () {
             if (this.name1 != '') {

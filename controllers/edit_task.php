@@ -78,10 +78,6 @@ $id_iniciator = $user->getIdIniciator($id_task);
 $list_users = $user->getListSubordinate($id_iniciator);
 $list_controllers = $user->getListControllers($id_iniciator);
 
-// добавим в этот массив текущего пользователя
-array_unshift($list_users, ['id_user' => $id_user->getValue(), 'name' => $name_user->getValue()]);
-
-
 if (count($list_controllers) == 0) {
     $list_controllers = $list_users;
 }

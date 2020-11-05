@@ -973,6 +973,12 @@ Class Task
                 break;
             case 7:
                 $interval = 'P3M';
+                $offset = (int)$dt_st->format('j') - 28;
+
+                if ($offset > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
+                }
+
                 break;
             case 5:
                 $interval = 'P1Y';
