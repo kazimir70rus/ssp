@@ -463,7 +463,13 @@ Class Task
 
         foreach ($result as $index => $action) {
 
-            if (((int)$action['id_action'] == 1) || ((int)$action['id_action'] == 12)) {
+            // список действий которые нужно проконтроллировать на наличие файла
+            if (
+                ((int)$action['id_action'] === 1) ||
+                ((int)$action['id_action'] === 25) ||
+                ((int)$action['id_action'] === 28) ||
+                ((int)$action['id_action'] === 12)
+               ) {
 
                 if ($this->isDokNeed($id_task) && (!$this->isDokLoad($id_task, $id_user))) {
                     unset($result[$index]);
