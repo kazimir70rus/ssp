@@ -372,7 +372,6 @@ Class Task
     }
 
 
-
     // возвращает дейсвтия по умолчанию
     function getDefaultAction($id_task, $id_user)
     {
@@ -416,11 +415,14 @@ Class Task
             where
                 id_task = :id_task and id_action = 5
             order by
-                dt_create desc limit 1
+                dt_create desc,
+                id_event desc
+            limit 1
         ';
         $data = $this->db->getRow($query, ['id_task' => $id_task]);
 
         if (is_array($data) && count($data)) {
+
             $query = '
                 select
                     count(*) as cnt
@@ -434,12 +436,14 @@ Class Task
             ';
             $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_event' => $data['id_event']]);
         } else {
+
             // для закрытия задачи необходимо наличие файла под авторством исполнителя
             $query = 'select count(*) as cnt from uploaddoks where id_task = :id_task and id_author = :id_user';
             $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
         }
 
         if ((int)$data['cnt'] > 0) {
+
             return true;
         }
 
