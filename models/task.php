@@ -145,7 +145,7 @@ Class Task
                 $filter = ' and charges_penalty > 0 ';
                 break;
             case 3:
-                $filter = ' and id_condition in (3, 5, 2, 11) ';
+                $filter = ' and id_condition in (3, 5, 2, 11, 16, 17, 18) ';
                 break;
             case 4:
                 $filter = ' and id_condition in (' . TASK_CANCEL . ', ' . TASK_END .') ';
@@ -457,6 +457,10 @@ Class Task
         $result = $this->getDefaultAction($id_task, $id_user);
 
         // для выполнения некоторых действий нужно выполнение определенных условий
+        // либо какие действия нужно удалить
+        
+        $iniciator_is_client = $this->iniciatorIsClient($id_task);
+
         foreach ($result as $index => $action) {
 
             if (((int)$action['id_action'] == 1) || ((int)$action['id_action'] == 12)) {
@@ -465,9 +469,29 @@ Class Task
                     unset($result[$index]);
                 }
             }
+
+            // перенос по запросу исполнителя: 25 (инициатор и потребитель разные) и 28 (инициатор и потребитель один и тот же)
+            // нужно удалить из списка лишнее действие
+            if (((int)$action['id_action'] === 25) && $iniciator_is_client) {
+                unset($result[$index]);
+            }
+                
+            if (((int)$action['id_action'] === 28) && !$iniciator_is_client) {
+                unset($result[$index]);
+            }
+
+            // перенос по запросу инициатора: 32 (инициатор и потребитель разные) и 23 (инициатор и потребитель один и тот же)
+            if (((int)$action['id_action'] === 32) && $iniciator_is_client) {
+                unset($result[$index]);
+            }
+                
+            if (((int)$action['id_action'] === 23) && !$iniciator_is_client) {
+                unset($result[$index]);
+            }
+
         }
 
-        return $result;
+        return array_values($result);
     }
 
 
@@ -526,22 +550,20 @@ Class Task
         if (($result > 0) || ((int)$event['id_action'] == 17) || ((int)$event['id_action'] == 23)) {
 
             // изменение параметров задачи
-            // если id_action = 5, то вставляем последнюю дату из истории
-            if ($event['id_action'] == 5) {
-                // нужно узнать на какую дату перенести
-                $dt = $this->getRequiredDate($event['id_task']);
+            // перенос срока задачи 
+            if (
+                ($event['id_action'] === 5)  ||
+                ($event['id_action'] === 31) ||
+                ($event['id_action'] === 33) ||
+                ($event['id_action'] === 23) 
+               ) {
                 // переносим
-                $this->changeDateEnd($event['id_task'], $dt['dt_wish']);
+                $this->changeDateEnd($event['id_task'], $event['dt']);
             }
 
-            if ($event['id_action'] == 23) {
-                // переносим дату без согласования
-                $this->changeDateEnd($event['id_task'], $event['dt']); 
-            }
-
-            // разрешить перенос, изменим штрафные баллы
-            if ($event['id_action'] == 3) {
-                $this->changePenalty($event['id_task'], $event['penalty']);
+            // увеличим штрафные баллы если они не равны нулю
+            if (isset($event['penalty']) && (int)$event['penalty'] > 0) {
+                $this->changePenalty($event);
             }
 
             if ($event['id_action'] == 12) {
@@ -549,7 +571,7 @@ Class Task
 
                 // проверить, если инициатор и потребитель одно лицо,
                 // то изменить состояние задачи на 11 (подтверждение инициатором или контроллером)
-                if ($this->executorIsClient($event['id_task'])) {
+                if ($this->iniciatorIsClient($event['id_task'])) {
                     $query = 'update tasks set id_condition = 11 where id_task = :id_task';
                     $this->db->updateData($query, ['id_task' => $event['id_task']]);
                 }
@@ -597,7 +619,7 @@ Class Task
                 set data_end = :dt_end
             where
                 id_task = :id_task 
-                and data_end != :dt_end';
+        ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'dt_end' => $dt_end]);
     }
@@ -782,7 +804,8 @@ Class Task
 
 
     // увеличиваем кол-во штрафных баллов
-    function changePenalty($id_task, $penalty)
+    // также проверим на id_action, т.к. не все действия могут увеличивать штраф
+    function changePenalty($event)
     {
         $query = '
             update
@@ -790,9 +813,11 @@ Class Task
             set
                 penalty = penalty + :penalty
             where
-                id_task = :id_task';
+                id_task = :id_task
+                and :id_action in (select id_action from actions where change_penalty = 1)
+        ';
 
-        return $this->db->updateData($query, ['id_task' => $id_task, 'penalty' => $penalty]);
+        return $this->db->updateData($query, ['id_task' => $event['id_task'], 'penalty' => $event['penalty'], 'id_action' => $event['id_action']]);
     }
 
 
@@ -884,7 +909,7 @@ Class Task
 
 
     // возвращает истину если инициатор и потребитель одно лицо, и фальш в противном случае
-    function executorIsClient($id_task)
+    function iniciatorIsClient($id_task)
     {
         $query = '
             select
@@ -897,7 +922,7 @@ Class Task
 
         $result = $this->db->getRow($query, ['id_task' => $id_task]);
 
-        if (is_array($result) && ((int)$result['cnt'] == 1)) {
+        if (is_array($result) && ((int)$result['cnt'] === 1)) {
 
             return true;
         }
