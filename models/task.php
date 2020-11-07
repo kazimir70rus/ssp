@@ -889,7 +889,11 @@ Class Task
 
         foreach ($list_tasks as $one_task) {
             // просмотриваем задачи в состоянии "выполняется" и "новая"
-            if (((int)$one_task['id_condition'] == 1) || ((int)$one_task['id_condition'] == 9)) {
+            if (
+                ((int)$one_task['id_condition'] == 1) ||
+                ((int)$one_task['id_condition'] == 19) ||
+                ((int)$one_task['id_condition'] == 9)
+               ) {
                 // текущий срок задачи
                 $dt_end = \DateTime::createFromFormat('Y-m-d H:i', $one_task['data_end'] . ' 00:00');
 
