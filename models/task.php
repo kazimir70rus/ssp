@@ -139,7 +139,7 @@ Class Task
 
         switch ((int)$data['filter']) {
             case 1:
-                $filter = ' and id_condition = ' . NEW_TASK;
+                $filter = ' and id_condition in (' . NEW_TASK . ', 19) ';
                 break;
             case 2:
                 $filter = ' and charges_penalty > 0 ';
@@ -413,7 +413,7 @@ Class Task
             from
                 events
             where
-                id_task = :id_task and id_action = 5
+                id_task = :id_task and id_action = 15
             order by
                 dt_create desc,
                 id_event desc
