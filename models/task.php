@@ -415,7 +415,6 @@ Class Task
             where
                 id_task = :id_task and id_action = 15
             order by
-                dt_create desc,
                 id_event desc
             limit 1
         ';
