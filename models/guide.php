@@ -87,7 +87,7 @@ Class Guide
     // возвращает список видов результата
     function getTypeReports()
     {
-        $query = 'select id_report, name from type_report order by name';
+        $query = 'select id_report, name from type_report where visible = 1 order by name';
 
         return $this->db->getList($query);
     }
