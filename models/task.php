@@ -145,7 +145,7 @@ Class Task
                 $filter = ' and charges_penalty > 0 ';
                 break;
             case 3:
-                $filter = ' and id_condition in (3, 5, 2, 11, 16, 17, 18) ';
+                $filter = ' and id_condition in (3, 5, 2, 11, 16, 17, 18, 20) ';
                 break;
             case 4:
                 $filter = ' and id_condition in (' . TASK_CANCEL . ', ' . TASK_END .') ';
@@ -467,6 +467,7 @@ Class Task
                 ((int)$action['id_action'] === 1) ||
                 ((int)$action['id_action'] === 25) ||
                 ((int)$action['id_action'] === 28) ||
+                ((int)$action['id_action'] === 35) ||
                 ((int)$action['id_action'] === 12)
                ) {
 
@@ -494,6 +495,14 @@ Class Task
                 unset($result[$index]);
             }
 
+            // исполнитель выполнил задачу: 12 (инициатор и потребитель разные) и 35 (инициатор и потребитель один и тот же)
+            if (((int)$action['id_action'] === 12) && $iniciator_is_client) {
+                unset($result[$index]);
+            }
+                
+            if (((int)$action['id_action'] === 35) && !$iniciator_is_client) {
+                unset($result[$index]);
+            }
         }
 
         return array_values($result);
@@ -552,7 +561,12 @@ Class Task
                                             'id_user'   => $event['id_user'],
                                         ]);
 
-        if (($result > 0) || ((int)$event['id_action'] == 17) || ((int)$event['id_action'] == 23)) {
+        if (
+                ($result > 0) ||
+                ((int)$event['id_action'] == 17) ||
+                ((int)$event['id_action'] == 28) ||
+                ((int)$event['id_action'] == 23)
+           ) {
 
             // изменение параметров задачи
             // перенос срока задачи 
@@ -560,6 +574,7 @@ Class Task
                 ($event['id_action'] === 5)  ||
                 ($event['id_action'] === 31) ||
                 ($event['id_action'] === 33) ||
+                ($event['id_action'] === 37) ||
                 ($event['id_action'] === 23) 
                ) {
                 // переносим

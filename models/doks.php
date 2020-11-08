@@ -17,49 +17,34 @@ Class Doks
     // сразу формируем признак возможности удаления задачи
     function getList($id_task, $id_user, $printed = false)
     {
-        // проверим были ли переносы
-        $query = '
-            select
-                id_event
-            from
-                events
-            where
-                id_task = :id_task and id_action = 15
-            order by
-                id_event desc
-            limit 1
-        ';
-        $data = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($data) && count($data)) {
-            $id_event = $data['id_event'];
-        } else {
-            $id_event = 0;
-        }
-
         $query = '
             select distinct
                 id_dok,
                 uploaddoks.id_author,
                 filename,
-                if(
-                    (
-                        (uploaddoks.id_author = :id_user) and
-                        id_condition not in (6, 7, 4) and
-                        id_event > :id_event
-                    ), 1, NULL
-                ) as enable_rm
+                if((uploaddoks.id_author <> :id_user) or ev.filename is null, null, 1) as enable_rm
                 ' . (($printed) ? ', printed' : '') . '
             from
                 uploaddoks
                 join tasks using (id_task)
-                left join events on comment = uploaddoks.filename
+                left join (
+                    select
+                        comment as filename
+                    from
+                        events
+                    where
+                        id_task = :id_task and
+                        id_event > (
+                            select id_event from events where id_task = :id_task and id_action = 15 order by id_event desc limit 1
+                        )
+                ) as ev using (filename)
             where
                 uploaddoks.id_task = :id_task
             order by
-                filename';
+                uploaddoks.filename
+        ';
 
-        return $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_event' => $id_event]);
+        return $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
 
 
