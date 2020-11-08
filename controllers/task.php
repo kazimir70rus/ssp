@@ -38,22 +38,7 @@ if (isset($_POST['submit'])) {
 }
 
 if (isset($_POST['upload'])) {
-
-    $uploads = new \ssp\models\Doks($db);
-    $result = $uploads->addDoks([(int)$_POST['id_task']], $id_user->getValue());
-
-    if ($result) {
-
-        $event = [
-            'id_task'   => (int)$_POST['id_task'],
-            'id_action' => '21',
-            'comment'   => htmlspecialchars($_FILES['userfile']['name'][0]),
-            'id_user'   => $id_user->getValue(),
-        ];
-
-        // добавить событие в журнал
-        (new \ssp\models\Event($db))->add($event);
-    }
+    (new \ssp\models\Doks($db))->addDoks([(int)$_POST['id_task']], $id_user->getValue());
 }
 
 $id_task = (int)$param[1];

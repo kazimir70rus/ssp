@@ -53,7 +53,7 @@ Class Doks
             from
                 uploaddoks
                 join tasks using (id_task)
-                join events on comment = uploaddoks.filename
+                left join events on comment = uploaddoks.filename
             where
                 uploaddoks.id_task = :id_task
             order by
@@ -69,13 +69,48 @@ Class Doks
         $query = '  insert into uploaddoks (id_task, id_author, filename)
                     values (:id_task, :id_author, :filename)';
 
-        return $this->db->insertData($query, [
-                                                'id_task'   => $id_task,
-                                                'id_author' => $id_author,
-                                                'filename'  => $filename,
-                                             ]);
+        $this->db->insertData($query, [
+                                        'id_task'   => $id_task,
+                                        'id_author' => $id_author,
+                                        'filename'  => $filename,
+                                      ]);
+
+        $event = [
+            'id_task'   => (int)$_POST['id_task'],
+            'id_action' => '21',
+            'comment'   => $filename,
+            'id_user'   => $id_author,
+        ];
+
+        // добавить событие в журнал
+        (new \ssp\models\Event($this->db))->add($event);
     }
 
+
+    // сформируем новое имя
+    function makeNewName($name)
+    {
+        // разделим имя и расширение
+        $el_file = explode('.', $name);
+
+        if (count($el_file) > 1) {
+            $filetype = $el_file[count($el_file) - 1];
+            unset($el_file[count($el_file) - 1]);
+            $filename = implode('.', array_values($el_file));
+        } else {
+            $filetype = '';
+            $filename = $name;
+        }
+
+        // форимруем номер версии
+        $filename .= '_' . date('d-m-Y-H-i');
+
+        if ($filetype === '') {
+            return $filename;
+        }
+
+        return $filename . '.' . $filetype;
+    }
 
     // добавление документа к задаче
     function addDoks($id_tasks, $id_user)
@@ -97,6 +132,13 @@ Class Doks
                 // basename() может спасти от атак на файловую систему;
                 // может понадобиться дополнительная проверка/очистка имени файла
                 $name = basename($_FILES['userfile']['name'][$key]);
+
+                // проверим существование файла с таким же именем
+                if (file_exists("${uploaddir}/${name}")) {
+                    // файл существует, переименуем
+                    $name = $this->makeNewName($name);
+                }
+
                 $full_path = "${uploaddir}/${name}";
 
                 if (move_uploaded_file($tmp_name, $full_path)) {
