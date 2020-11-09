@@ -142,7 +142,7 @@ Class Task
                 $filter = ' and id_condition in (' . NEW_TASK . ', 19) ';
                 break;
             case 2:
-                $filter = ' and (penalty_executor + penalty_client) > 0 ';
+                $filter = ' and ((penalty_executor > 0) or (penalty_client > 0)) ';
                 break;
             case 3:
                 $filter = ' and id_condition in (3, 5, 2, 11, 16, 17, 18, 20) ';
