@@ -136,6 +136,7 @@
             <th style="width: 3rem">пот.</th>
             <th style="width: 3rem">вес</th>
             <th style="width: 25rem">состояние</th>
+            <th style="width: 2rem">ДЗ</th>
             <th style="width: 2rem">ШИ</th>
             <th style="width: 2rem">ШП</th>
         </tr>
@@ -153,6 +154,7 @@
                 <td>{{task.name_client}}</td>
                 <td>{{task.penalty}}</td>
                 <td>{{task.condition}}</td>
+                <td>{{task.dz}}</td>
                 <td>{{task.penalty_executor}}</td>
                 <td>{{task.penalty_client}}</td>
             </tr>

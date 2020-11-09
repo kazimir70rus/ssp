@@ -200,7 +200,8 @@ Class Task
                        where id_tip = 2 and task_users.id_task = tasks.id_task
                     ) as name_client,
                     penalty,
-                    date_format(data_create, "%d-%m-%Y %H:%i") as data_create
+                    date_format(data_create, "%d-%m-%Y %H:%i") as data_create,
+                    dz
                   from
                     task_users
                     join tasks using (id_task)
@@ -259,7 +260,16 @@ Class Task
                             using (id_task)
                         )
                     ) as pn using (id_task)
-
+                    left join (
+                        select
+                            id_task, "ДЗ" as dz
+                        from
+                            tasks
+                            join task_users using (id_task)
+                        where
+                            id_report = 5 and
+                            id_tip = 1
+                    ) as sdz using (id_task)
                   where
                     ' . $is_executor . '
                     ' . $filter . '
