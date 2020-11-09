@@ -46,5 +46,26 @@ Class Event
                                                 'dt_create' => $event['dt_create'] ?? date('Y-m-d'),
                                              ]);
     }
+
+
+    // возвращаем историю событий у задачи
+    function getHistoryActions($id_task)
+    {
+        $query = '
+            select
+                date_format(dt_create, "%d-%m-%Y") as dt_create,
+                date_format(dt_wish, "%d-%m-%Y") as dt_wish,
+                users.name as user, actions.name as action, comment
+            from
+                events
+                join users using (id_user)
+                join actions using (id_action)
+            where
+                id_task = :id_task
+            order by
+                id_event desc';
+
+        return $this->db->getList($query, ['id_task' => $id_task]);
+    }
 }
 

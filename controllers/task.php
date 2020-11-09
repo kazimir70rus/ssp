@@ -110,8 +110,5 @@ switch ((int)$task_info['repetition']) {
         break;
 }
 
-// вывод истории действий которые проводились над этой задачей
-$history_actions = $task->getHistoryActions($id_task);
-
 require_once 'views/task.php';
 

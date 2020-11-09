@@ -148,16 +148,16 @@
     </div>
     <div>
         <table>
-        <caption>история изменений</caption>
-        <?php foreach ($history_actions as $event) { ?>
-            <tr>
-                <td><?=$event['dt_create']?></td>
-                <td><?=$event['user']?></td>
-                <td><?=$event['action']?></td>
-                <td><?=$event['dt_wish']?></td>
-                <td><?=$event['comment']?></td>
-            </tr>    
-        <?php } ?>
+            <caption>история изменений</caption>
+            <template v-for="event in events">
+                <tr>
+                    <td>{{event.dt_create}}</td>
+                    <td>{{event.user}}</td>
+                    <td>{{event.action}}</td>
+                    <td>{{event.dt_wish}}</td>
+                    <td>{{event.comment}}</td>
+                </tr>
+            </template>    
         </table>
     </div>
 </div>
@@ -181,6 +181,7 @@ var app = new Vue({
         upload_files: [],
         comment: '',
         print_status: false,
+        events: [],
     },
     watch: {
         id_action: function () {
@@ -247,6 +248,16 @@ var app = new Vue({
                 }
             );
         },
+        getListEvents: function() {
+            this.$http.get(this.server + 'getlistevents/' + this.id_task).then(
+                function (otvet) {
+                    this.events = otvet.data;
+                },
+                function (err) {
+                    console.log(err);
+                }
+            );
+        },
         is_printed: function (index) {
             const state = (this.upload_files[index].printed == '0') ? '0' : '1';
             this.$http.post(this.server + 'dok_is_printed', {id_dok: this.upload_files[index].id_dok, printed: state}).then(
@@ -280,6 +291,7 @@ var app = new Vue({
                 function (otvet) {
                     this.getActions();
                     this.getListFiles();
+                    this.getListEvents();
                 },
                 function (err) {
                     console.log(err);
@@ -290,6 +302,7 @@ var app = new Vue({
     created: function() {
         this.getActions();
         this.getListFiles();
+        this.getListEvents();
     }
 });
 
