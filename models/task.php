@@ -142,7 +142,7 @@ Class Task
                 $filter = ' and id_condition in (' . NEW_TASK . ', 19) ';
                 break;
             case 2:
-                $filter = ' and charges_penalty > 0 ';
+                $filter = ' and (penalty_executor + penalty_client) > 0 ';
                 break;
             case 3:
                 $filter = ' and id_condition in (3, 5, 2, 11, 16, 17, 18, 20) ';
@@ -190,24 +190,8 @@ Class Task
                     data_end as date_end,
                     conditions.name as `condition`,
                     tasks.id_condition as id_condition,
-                    (
-                        select
-                            sum(penalty)
-                        from
-                            penaltys as p
-                        where
-                            p.id_task = tasks.id_task
-                            and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 1)
-                    ) as penalty_executor,
-                    (
-                        select
-                            sum(penalty)
-                        from
-                            penaltys as p
-                        where
-                            p.id_task = tasks.id_task
-                            and p.id_user = (select id_user from task_users as t where t.id_task = tasks.id_task and id_tip = 2)
-                    ) as penalty_client,
+                    penalty_executor,
+                    penalty_client,
                     if(id_periodic = 0, "Р", "П") as periodicity,
                     (select name from task_users join users using (id_user)
                        where id_tip = 1 and task_users.id_task = tasks.id_task
@@ -221,6 +205,61 @@ Class Task
                     task_users
                     join tasks using (id_task)
                     join conditions using (id_condition)
+                    left join
+                    (
+                        (
+                        select
+                            id_task, penalty_executor, penalty_client
+                        from
+                            (select
+                                penaltys.id_task as id_task, sum(penalty) as penalty_executor
+                            from
+                                penaltys join task_users using (id_task, id_user)
+                            where
+                                id_tip = 1
+                            group by
+                                id_task, penaltys.id_user
+                            ) as e
+                            left join
+                            (select
+                                penaltys.id_task as id_task, sum(penalty) as penalty_client
+                            from
+                                penaltys join task_users using (id_task, id_user)
+                            where
+                                id_tip = 2
+                            group by
+                                id_task, penaltys.id_user
+                            ) as c
+                            using (id_task)
+                        )
+                        union
+                        (
+                        select
+                            id_task, penalty_executor, penalty_client
+                        from
+                            (select
+                                penaltys.id_task as id_task, sum(penalty) as penalty_executor
+                            from
+                                penaltys join task_users using (id_task, id_user)
+                            where
+                                id_tip = 1
+                            group by
+                                id_task, penaltys.id_user
+                            ) as e
+                            right join
+                            (select
+                                penaltys.id_task as id_task, sum(penalty) as penalty_client
+                            from
+                                penaltys join task_users using (id_task, id_user)
+                            where
+                                id_tip = 2
+                            group by
+                                id_task, penaltys.id_user
+                            ) as c
+                            using (id_task)
+                        )
+                    ) as pn using (id_task)
+
                   where
                     ' . $is_executor . '
                     ' . $filter . '
