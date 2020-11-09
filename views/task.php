@@ -123,7 +123,7 @@
                                 v-model="dok.printed"
                                 v-bind:true-value="1"
                                 v-bind:false-value="0"
-                                v-on:click="is_printed(index)"
+                                v-on:change="is_printed(index)"
                             >
                         </div>
                     </td>
@@ -248,7 +248,7 @@ var app = new Vue({
             );
         },
         is_printed: function (index) {
-            const state = (this.upload_files[index].printed == '0') ? '1' : '0';
+            const state = (this.upload_files[index].printed == '0') ? '0' : '1';
             this.$http.post(this.server + 'dok_is_printed', {id_dok: this.upload_files[index].id_dok, printed: state}).then(
                 function (otvet) {
                 },
