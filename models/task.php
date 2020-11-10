@@ -318,7 +318,7 @@ Class Task
                 join task_users using (id_task)
             where
                 id_task in (select id_task from task_users where id_user = :id_user)
-                and id_condition = 3
+                and id_condition in (3, 20)
                 and id_tip = 2
         ';
 
@@ -630,23 +630,29 @@ Class Task
                 $this->changeDateEnd($event['id_task'], $event['dt']);
             }
 
+            // возврат к выполнению, сбрасываем дату выполнения и принятия задачи
+            // или когда П И К не приняли задачу
+            if (
+                ($event['id_action'] === 38) ||
+                ($event['id_action'] === 14)
+               ) {
+                $this->cleanDateExecut($event['id_task']);
+            }
+
+            // задача выполнена, исполнитель сказал
+            if ($event['id_action'] == 12) {
+                $this->changeDateExec($event['id_task']);
+            }
+
             // увеличим штрафные баллы если они не равны нулю
             if (isset($event['penalty']) && (int)$event['penalty'] > 0) {
                 $this->changePenalty($event);
             }
 
-            if ($event['id_action'] == 12) {
-                $this->changeDateExec($event['id_task']);
-
-                // проверить, если инициатор и потребитель одно лицо,
-                // то изменить состояние задачи на 11 (подтверждение инициатором или контроллером)
-                if ($this->iniciatorIsClient($event['id_task'])) {
-                    $query = 'update tasks set id_condition = 11 where id_task = :id_task';
-                    $this->db->updateData($query, ['id_task' => $event['id_task']]);
-                }
-            }
-
-            if ($event['id_action'] == 13) {
+            // при подтверждении выполнения потребителем, при И != П - 36
+            // при И = П - 19, т.к. 19 используется в обоих случаях, то договоримся изменять
+            // дату только если она не установлена
+            if (($event['id_action'] == 36) || ($event['id_action'] == 19)) {
                 $this->changeDateClient($event['id_task']);
             }
 
@@ -659,12 +665,26 @@ Class Task
     }
 
 
+    // обнуляем даты выполнения и принятия
+    function cleanDateExecut($id_task)
+    {
+        $query = '
+            update tasks
+                set data_execut = null, data_client = null
+            where
+                id_task = :id_task
+        ';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
+    }
+
+
     // изменяем срок завершения задачи
     function changeDateEnd($id_task, $dt_end)
     {
         $query = '
             update tasks
-                set data_end = :dt_end
+                set data_end = :dt_end, data_execut = null, data_client = null
             where
                 id_task = :id_task 
         ';
@@ -693,7 +713,6 @@ Class Task
 
     function changeDateExec($id_task)
     {
-
         $timestamp = date('Y-m-d H:i');
 
         $query = '
@@ -714,7 +733,9 @@ Class Task
             update tasks
                 set data_client = :timestamp
             where
-                id_task = :id_task';
+                id_task = :id_task and
+                data_client is null
+        ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'timestamp' => $timestamp]);
     }
