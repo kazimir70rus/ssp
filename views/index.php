@@ -74,7 +74,8 @@
             <select v-model="common_filter" class="input input_text">
                 <option value="1"> новые</option>
                 <option value="2"> просроченные</option>
-                <option value="3"> ожидают согласования</option>
+                <option value="3"> согласованиe подтверждения</option>
+                <option value="6"> согласованиe переноса</option>
                 <option value="4"> завершенные и отмененные</option>
                 <option value="5"> все, кроме завершенных и отмененных</option>
             </select>

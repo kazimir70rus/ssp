@@ -145,7 +145,10 @@ Class Task
                 $filter = ' and ((penalty_executor > 0) or (penalty_client > 0)) ';
                 break;
             case 3:
-                $filter = ' and id_condition in (select id_condition from conditions where agreement = 1) ';
+                $filter = ' and id_condition in (select id_condition from conditions where agreement_exe = 1) ';
+                break;
+            case 6:
+                $filter = ' and id_condition in (select id_condition from conditions where agreement_move = 1) ';
                 break;
             case 4:
                 $filter = ' and id_condition in (' . TASK_CANCEL . ', ' . TASK_END .') ';
@@ -656,9 +659,7 @@ Class Task
                 $this->changeDateClient($event['id_task']);
             }
 
-            $events = new \ssp\models\Event($this->db);
-
-            return $events->add($event);
+            return (new \ssp\models\Event($this->db))->add($event);
         }
 
         return -1;
