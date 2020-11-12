@@ -585,6 +585,21 @@ Class Task
     }
 
 
+    // проверяет тип отчета в задаче, по умолчанию проверяет на ДЗ
+    function taskTypeReport($id_task, $id_report = 5)
+    {
+        $query = 'select count(id_task) as cnt from tasks where id_task = :id_task and id_report = :id_report';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_report' => $id_report]);
+
+        if ((int)$result['cnt']) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     function updateCondition($event)
     {
         // проверим на удаление
