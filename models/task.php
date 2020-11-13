@@ -502,6 +502,21 @@ Class Task
     }
 
 
+    // возвращает true если для выполнения указанного дейтсвия требуется проверка на наличие ДЗ
+    function actionCheckDok($id_action)
+    {
+        $query = 'select count(id_action) as cnt from actions where id_action = :id_action and check_dz = 1';
+
+        $result = $this->db->getRow($query, ['id_action' => $id_action]);
+
+        if ((int)$result['cnt']) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     function getAction($id_task, $id_user)
     {
         // возвращает сведения о возможных действиях над этой задачей этим пользователем
@@ -514,14 +529,8 @@ Class Task
 
         foreach ($result as $index => $action) {
 
-            // список действий которые нужно проконтроллировать на наличие файла
-            if (
-                ((int)$action['id_action'] === 1) ||
-                ((int)$action['id_action'] === 25) ||
-                ((int)$action['id_action'] === 28) ||
-                ((int)$action['id_action'] === 35) ||
-                ((int)$action['id_action'] === 12)
-               ) {
+            // проверка, при этом дейсвтии файл нужен?
+            if ($this->actionCheckDok($action['id_action'])) {
 
                 if ($this->isDokNeed($id_task) && (!$this->isDokLoad($id_task, $id_user))) {
                     unset($result[$index]);
@@ -1026,6 +1035,21 @@ Class Task
         $role = $this->getTip($id_task, $id_user);
 
         if (count($role) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // проверяет роль пользователя в задаче
+    function checkTip($id_task, $id_user, $id_tip)
+    {
+        $query = 'select count(id_user) as cnt from task_users where id_task = :id_task and id_user = :id_user and id_tip = :id_tip';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_tip' => $id_tip]);
+
+        if ((int)$result['cnt']) {
             return true;
         }
 

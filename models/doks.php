@@ -22,7 +22,7 @@ Class Doks
                 id_dok,
                 uploaddoks.id_author,
                 filename,
-                if((uploaddoks.id_author <> :id_user) or ev.filename is null, null, 1) as enable_rm
+                if((id_condition != 1) or (uploaddoks.id_author <> :id_user) or ev.filename is null, null, 1) as enable_rm
                 ' . (($printed) ? ', printed' : '') . '
             from
                 uploaddoks
@@ -67,8 +67,24 @@ Class Doks
             'id_user'   => $id_author,
         ];
 
+        // если пользователь в этой задаче является исполнителем
+        if ((new \ssp\models\Task($this->db))->checkTip($id_task, $id_author, 1)) {
+
+            // установим признак "документ загружен"
+            $this->dokIsLoad($id_task);
+        }
+
         // добавить событие в журнал
         (new \ssp\models\Event($this->db))->add($event);
+    }
+
+
+    // устанавливает признак "документ загружен" у задачи
+    function dokIsLoad($id_task)
+    {
+        $query = 'update tasks set doks = 1 where id_task = :id_task';
+
+        return $this->db->updateData($query, ['id_task' => $id_task]);
     }
 
 
