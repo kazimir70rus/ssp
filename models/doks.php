@@ -15,6 +15,7 @@ Class Doks
 
     // формируем список файлов прикрипленных к задаче,
     // сразу формируем признак возможности удаления задачи
+    // запрет удаления файлов после действий (12, 25, 28, 35) запрос на перенос и отчет о выполнении
     function getList($id_task, $id_user, $printed = false)
     {
         $query = '
@@ -35,7 +36,7 @@ Class Doks
                     where
                         id_task = :id_task and
                         id_event > (
-                            select id_event from events where id_task = :id_task and id_action = 15 order by id_event desc limit 1
+                            select id_event from events where id_task = :id_task and id_action in (12, 25, 28, 35) order by id_event desc limit 1
                         )
                 ) as ev using (filename)
             where
@@ -71,7 +72,7 @@ Class Doks
         if ((new \ssp\models\Task($this->db))->checkTip($id_task, $id_author, 1)) {
 
             // установим признак "документ загружен"
-            $this->dokIsLoad($id_task);
+            $this->setDokIsLoad($id_task, 1);
         }
 
         // добавить событие в журнал
@@ -79,12 +80,27 @@ Class Doks
     }
 
 
-    // устанавливает признак "документ загружен" у задачи
-    function dokIsLoad($id_task)
+    // устанавливает или сбрасывает признак "документ загружен" у задачи
+    function setDokIsLoad($id_task, $status)
     {
-        $query = 'update tasks set doks = 1 where id_task = :id_task';
+        $query = 'update tasks set doks = :status where id_task = :id_task';
 
-        return $this->db->updateData($query, ['id_task' => $id_task]);
+        return $this->db->updateData($query, ['id_task' => $id_task, 'status' => $status]);
+    }
+
+
+    // возвращает статус наличия новых документов у задачи
+    function checkDokIsLoad($id_task)
+    {
+        $query = 'select count(id_task) as cnt from tasks where id_task = :id_task and doks = 1';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if ((int)$result['cnt']) {
+            return true;
+        }
+
+        return false;
     }
 
 

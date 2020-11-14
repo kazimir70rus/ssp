@@ -455,53 +455,6 @@ Class Task
     }
 
 
-    // проверим файлы уже загружены
-    function isDokLoad($id_task, $id_user)
-    {
-        // проверим были ли переносы
-        $query = '
-            select
-                id_event
-            from
-                events
-            where
-                id_task = :id_task and id_action = 15
-            order by
-                id_event desc
-            limit 1
-        ';
-        $data = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($data) && count($data)) {
-
-            $query = '
-                select
-                    count(*) as cnt
-                from
-                    uploaddoks
-                where
-                    id_task = :id_task
-                    and id_author = :id_user
-                    and filename in (
-                        select comment from events where id_action = 21 and id_event > :id_event)
-            ';
-            $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_event' => $data['id_event']]);
-        } else {
-
-            // для закрытия задачи необходимо наличие файла под авторством исполнителя
-            $query = 'select count(*) as cnt from uploaddoks where id_task = :id_task and id_author = :id_user';
-            $data = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
-        }
-
-        if ((int)$data['cnt'] > 0) {
-
-            return true;
-        }
-
-        return false;
-    }
-
-
     // возвращает true если для выполнения указанного дейтсвия требуется проверка на наличие ДЗ
     function actionCheckDok($id_action)
     {
@@ -529,10 +482,14 @@ Class Task
 
         foreach ($result as $index => $action) {
 
-            // проверка, при этом дейсвтии файл нужен?
+            // удаляем действия которые должны быть недоступны при отстутствии загруженного документа
+            // проверка, при этом действии файл нужен?
             if ($this->actionCheckDok($action['id_action'])) {
 
-                if ($this->isDokNeed($id_task) && (!$this->isDokLoad($id_task, $id_user))) {
+                if (
+                    $this->isDokNeed($id_task) && 
+                    (!(new \ssp\models\Doks($this->db))->checkDokIsLoad($id_task))
+                   ) {
                     unset($result[$index]);
                 }
             }
@@ -609,6 +566,28 @@ Class Task
     }
 
 
+    // возвращаем состояние задачи в которое переходит задача после дейсвтия
+    function getConditionAction($id_action)
+    {
+        $query = 'select id_condition from actions where id_action = :id_action';
+
+        $result = $this->db->getRow($query, ['id_action' => $id_action]);
+
+        return (int)$result['id_condition'];
+    }
+
+
+    // узнаем текущее состояние задачи
+    function getTaskCondition($id_task)
+    {
+        $query = 'select id_condition from tasks where id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        return (int)$result['id_condition'];
+    }
+
+
     function updateCondition($event)
     {
         // проверим на удаление
@@ -617,76 +596,83 @@ Class Task
             return $this->deleteTask($event['id_task']);
         }
 
-        // изменение состояния задачи
-        $query = '
-            update tasks
-                set id_condition = 
-                    if((select id_condition from actions where id_action = :id_action) = 12,
-                        id_condition, (select id_condition from actions where id_action = :id_action))
-            where
-                id_task = :id_task
-                and id_condition in 
-                    (select id_condition from enable_actions where id_action = :id_action and id_tip in 
-                        (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
+        // узнаем в какое состояние должна перейти задача
+        $id_condition = $this->getConditionAction($event['id_action']);
 
-        $result = $this
-                    ->db
-                    ->updateData($query, [
-                                            'id_task'   => $event['id_task'],
-                                            'id_action' => $event['id_action'],
-                                            'id_user'   => $event['id_user'],
-                                        ]);
+        if (($id_condition === 12) || (($this->getTaskCondition($event['id_task']) === 17) && ($event['id_action'] === 28))) {
+            // действие без изменения состояния или действия 28 приводит в состояние 17 из 17
+            $result = 1;
+        } else {
+            // изменение состояния задачи
+            $query = '
+                update tasks
+                    set id_condition = :id_condition
+                where
+                    id_task = :id_task
+                    and id_condition in 
+                        (select id_condition from enable_actions where id_action = :id_action and id_tip in 
+                            (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
 
-        if (
-                ($result > 0) ||
-                ((int)$event['id_action'] == 17) ||
-                ((int)$event['id_action'] == 28) ||
-                ((int)$event['id_action'] == 23)
-           ) {
-
-            // изменение параметров задачи
-            // перенос срока задачи 
-            if (
-                ($event['id_action'] === 5)  ||
-                ($event['id_action'] === 31) ||
-                ($event['id_action'] === 33) ||
-                ($event['id_action'] === 37) ||
-                ($event['id_action'] === 23) 
-               ) {
-                // переносим
-                $this->changeDateEnd($event['id_task'], $event['dt']);
-            }
-
-            // возврат к выполнению, сбрасываем дату выполнения и принятия задачи
-            // или когда П И К не приняли задачу
-            if (
-                ($event['id_action'] === 38) ||
-                ($event['id_action'] === 14)
-               ) {
-                $this->cleanDateExecut($event['id_task']);
-            }
-
-            // задача выполнена, исполнитель сказал
-            if ($event['id_action'] == 12) {
-                $this->changeDateExec($event['id_task']);
-            }
-
-            // увеличим штрафные баллы если они не равны нулю
-            if (isset($event['penalty']) && (int)$event['penalty'] > 0) {
-                $this->changePenalty($event);
-            }
-
-            // при подтверждении выполнения потребителем, при И != П - 36
-            // при И = П - 19, т.к. 19 используется в обоих случаях, то договоримся изменять
-            // дату только если она не установлена
-            if (($event['id_action'] == 36) || ($event['id_action'] == 19)) {
-                $this->changeDateClient($event['id_task']);
-            }
-
-            return (new \ssp\models\Event($this->db))->add($event);
+            $result = $this
+                        ->db
+                        ->updateData($query, [
+                                                'id_task'      => $event['id_task'],
+                                                'id_action'    => $event['id_action'],
+                                                'id_user'      => $event['id_user'],
+                                                'id_condition' => $id_condition,
+                                            ]);
         }
 
-        return -1;
+        if ((int)$result === 0) {
+            return -1;
+        } 
+
+        // изменение параметров задачи
+        // перенос срока задачи 
+        if (
+            ($event['id_action'] === 5)  ||
+            ($event['id_action'] === 31) ||
+            ($event['id_action'] === 33) ||
+            ($event['id_action'] === 37) ||
+            ($event['id_action'] === 23) 
+           ) {
+            // переносим
+            $this->changeDateEnd($event['id_task'], $event['dt']);
+        }
+
+        // сбрасываем флаг документов, при каких условиях?
+        // предположим, что когда состояние задачи изменилось на "выполняется"
+        if ($id_condition === 1) {
+            (new \ssp\models\Doks($this->db))->setDokIsLoad($event['id_task'], 0);
+        }
+
+        // возврат к выполнению, сбрасываем дату выполнения и принятия задачи
+        // или когда П И К не приняли задачу
+        if (
+            ($event['id_action'] === 38) ||
+            ($event['id_action'] === 14)
+           ) {
+            $this->cleanDateExecut($event['id_task']);
+        }
+
+        // задача выполнена, исполнитель сказал
+        if ($event['id_action'] == 12) {
+            $this->changeDateExec($event['id_task']);
+        }
+
+        // увеличим штрафные баллы если они не равны нулю
+        if (isset($event['penalty']) && (int)$event['penalty'] > 0) {
+            $this->changePenalty($event);
+        }
+
+        // при подтверждении выполнения потребителем, при И != П - 36
+        // при И = П - 19, т.к. 19 используется в обоих случаях, то договоримся изменять
+        // дату только если она не установлена
+        if (($event['id_action'] == 36) || ($event['id_action'] == 19)) {
+            $this->changeDateClient($event['id_task']);
+        }
+
+        return (new \ssp\models\Event($this->db))->add($event);
     }
 
 
