@@ -655,8 +655,14 @@ Class Task
             $this->cleanDateExecut($event['id_task']);
         }
 
+        // начислить штрафы и перенести просроченную задачу
+        if ($event['id_action'] === 18) {
+            $this->accruePenalty($event['id_task'], $event['dt_create']);
+            $this->changeDateEnd($event['id_task'], $event['dt_create']);
+        }
+
         // задача выполнена, исполнитель сказал
-        if ($event['id_action'] == 12) {
+        if ($event['id_action'] === 12) {
             $this->changeDateExec($event['id_task']);
         }
 
@@ -668,7 +674,7 @@ Class Task
         // при подтверждении выполнения потребителем, при И != П - 36
         // при И = П - 19, т.к. 19 используется в обоих случаях, то договоримся изменять
         // дату только если она не установлена
-        if (($event['id_action'] == 36) || ($event['id_action'] == 19)) {
+        if (($event['id_action'] === 36) || ($event['id_action'] === 19)) {
             $this->changeDateClient($event['id_task']);
         }
 
@@ -904,41 +910,16 @@ Class Task
     // сдвигает просроченную задачу, с начислением штрафных баллов
     function moveExpiredTask($id_task, $new_dt_end)
     {
-        // т.к. будем менять данные в нескольких используем транзакции
-        $this->db->beginTransaction();
-        $result = false;
+        // создаем событие "перенос просроченной задачи" (18) админом (11)
+        $event = [
+            'id_task'   => $id_task,
+            'id_action' => 18,
+            'comment'   => '',
+            'id_user'   => 11,
+            'dt_create' => $new_dt_end,
+        ];
 
-        // начислить штрафы
-        if ($this->accruePenalty($id_task, $new_dt_end)) {
-
-            // перенести задачу
-            if ($this->changeDateEnd($id_task, $new_dt_end) > 0) {
-
-                // создаем событие "перенос просроченной задачи" (18) админом (11)
-                $event = [
-                    'id_task'   => $id_task,
-                    'id_action' => 18,
-                    'comment'   => '',
-                    'id_user'   => 11,
-                    'dt_create' => $new_dt_end,
-                ];
-
-                $events = new \ssp\models\Event($this->db);
-
-                // добавить событие в журнал
-                if ($events->add($event) > 0) {
-                    $result = true;
-                }
-            }
-        }
-        // завершаем транзакцию
-        if ($result) {
-            $this->db->commit();
-            return true;
-        } else {
-            $this->db->rollBack();
-            return false;
-        }
+        $this->updateCondition($event);
     }
 
 
