@@ -10,17 +10,26 @@ if (isset($_POST['submit'])) {
     // проверка входных данных
 
     $task_info = [
-        'id_author'     => $id_user->getValue(),
-        'id_result'     => $guide->getIdTypeResult($_POST['type_result']),
-        'id_report'     => (int)$_POST['id_report'],
-        'name'          => htmlspecialchars($_POST['task']),
-        'penalty'       => (int)$_POST['penalty'],
-        'id_executor'   => (int)$_POST['executor'],
-        'id_iniciator'  => (int)$_POST['iniciator'],
-        'id_client'     => (int)$_POST['client'],
-        'id_controller' => (int)$_POST['controller'],
-        'repetition'    => (int)$_POST['repetition'],
+        'id_author'      => $id_user->getValue(),
+        'id_result'      => $guide->getIdTypeResult($_POST['type_result']),
+        'id_report'      => (int)$_POST['id_report'],
+        'name'           => htmlspecialchars($_POST['task']),
+        'penalty'        => (int)$_POST['penalty'],
+        'id_executor'    => (int)$_POST['executor'],
+        'id_iniciator'   => (int)$_POST['iniciator'],
+        'id_client'      => (int)$_POST['client'],
+        'id_controller'  => (int)$_POST['controller'],
+        'repetition'     => (int)$_POST['repetition'],
+        'id_master_task' => (int)$_POST['id_master_task'],
     ];
+
+    // проверка, если это подзадача, то она не может быть периодической,
+    // если иначе, отправляем на главную. возможно и нескольких исполнителей нужно будет отсечь
+    if ($task_info['id_master_task'] && $task_info['repetition'] > 1) {
+
+        header('Location: ' . BASE_URL);
+        exit;
+    }
 
     // исполнители для задачи
     $executors_for_task = $_POST['executors_for_task'] ?? [(int)$_POST['executor']];
@@ -60,6 +69,8 @@ if (isset($_POST['submit'])) {
         exit;
     }
 }
+
+$id_master_task = (int)($param[1] ?? 0);
 
 $cur_date = new DateTime();
 $fin_date = new DateTime();

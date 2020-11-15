@@ -25,6 +25,12 @@ if (isset($_POST['submit'])) {
 
     if ($task->updateCondition($event) > 0) {
 
+        // id_action = 39 создать подзадачу
+        if ($event['id_action'] === 39) {
+            header('Location: ' . BASE_URL . 'add_task/' . $event['id_task']);
+            exit;
+        }
+
         // id_action = 17 это редактирование
         if ($event['id_action'] === 17) {
             header('Location: ' . BASE_URL . 'edit_task/' . $event['id_task']);

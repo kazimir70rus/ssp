@@ -24,9 +24,9 @@ Class Task
         $timestamp = date('Y-m-d H:i');
 
         $query = '  insert into tasks
-                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic, data_create)
+                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic, data_create, id_master)
                     values
-                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create)';
+                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create, :id_master)';
 
         $id_task = $this
                         ->db
@@ -39,6 +39,7 @@ Class Task
                                                 'id_report'   => $task_info['id_report'],
                                                 'id_periodic' => $id_periodic,
                                                 'data_create' => $timestamp,
+                                                'id_master'   => $task_info['id_master_task'],
                                             ]);
 
         if ($id_task > 0) {
@@ -494,32 +495,26 @@ Class Task
                 }
             }
 
-            // перенос по запросу исполнителя: 25 (инициатор и потребитель разные) и 28 (инициатор и потребитель один и тот же)
             // нужно удалить из списка лишнее действие
-            if (((int)$action['id_action'] === 25) && $iniciator_is_client) {
-                unset($result[$index]);
-            }
-                
-            if (((int)$action['id_action'] === 28) && !$iniciator_is_client) {
-                unset($result[$index]);
-            }
-
+            // перенос по запросу исполнителя: 25 (инициатор и потребитель разные) и 28 (инициатор и потребитель один и тот же)
             // перенос по запросу инициатора: 32 (инициатор и потребитель разные) и 23 (инициатор и потребитель один и тот же)
-            if (((int)$action['id_action'] === 32) && $iniciator_is_client) {
-                unset($result[$index]);
-            }
-                
-            if (((int)$action['id_action'] === 23) && !$iniciator_is_client) {
-                unset($result[$index]);
-            }
-
             // исполнитель выполнил задачу: 12 (инициатор и потребитель разные) и 35 (инициатор и потребитель один и тот же)
-            if (((int)$action['id_action'] === 12) && $iniciator_is_client) {
-                unset($result[$index]);
-            }
-                
-            if (((int)$action['id_action'] === 35) && !$iniciator_is_client) {
-                unset($result[$index]);
+            if ($iniciator_is_client) {
+                if (
+                        ((int)$action['id_action'] === 25) ||
+                        ((int)$action['id_action'] === 32) ||
+                        ((int)$action['id_action'] === 12)
+                   ) {
+                        unset($result[$index]);
+                }
+            } else {
+                if (
+                        ((int)$action['id_action'] === 28) ||
+                        ((int)$action['id_action'] === 23) ||
+                        ((int)$action['id_action'] === 35)
+                   ) {
+                        unset($result[$index]);
+                }
             }
         }
 

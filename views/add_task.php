@@ -12,7 +12,7 @@
 <div id="app">
 
     <form enctype="multipart/form-data" action="" method="post" @submit="checkForm">
-
+        <input type="hidden" value="<?=$id_master_task?>" name="id_master_task">
         <div style="display: flex;">
 
             <div style="margin-right: 5rem;">
