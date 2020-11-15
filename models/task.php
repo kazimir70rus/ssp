@@ -17,16 +17,30 @@ Class Task
     }
 
 
+    // корректировка срока основной задачи
+    function updateMasterDateEnd($id_task, $id_master)
+    {
+        // узнаем срок подзадачи
+
+        // увеличиваем на 1 день
+
+        // если срок основной задачи меньше, увеличиваем
+
+    }
+
+
     function add($task_info, $id_periodic = 0)
     {
         $this->db->beginTransaction();
 
         $timestamp = date('Y-m-d H:i');
 
-        $query = '  insert into tasks
-                        (name, data_begin, data_end, penalty, id_result, id_report, id_periodic, data_create, id_master)
-                    values
-                        (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create, :id_master)';
+        $query = '
+            insert into tasks
+                (name, data_begin, data_end, penalty, id_result, id_report, id_periodic, data_create, id_master)
+            values
+                (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create, :id_master)
+        ';
 
         $id_task = $this
                         ->db
@@ -43,6 +57,12 @@ Class Task
                                             ]);
 
         if ($id_task > 0) {
+
+            // если была добавлена подзадача, то нужно скорректировать рамки основной задачи
+            if ($task_info['id_master_task']) {
+                $this->updateMasterDateEnd($id_task, $task_info['id_master_task']);
+            }
+
             $error = false;
             $query = 'insert into
                             task_users (id_task, id_user, id_tip)

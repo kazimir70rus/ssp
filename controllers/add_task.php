@@ -31,6 +31,15 @@ if (isset($_POST['submit'])) {
         exit;
     }
 
+    // необходимо проверить имеет ли отношение текущий пользователь к основной задаче
+    if ($task_info['id_master_task']) {
+        if (!$task->checkAccess($task_info['id_master_task'], $id_user->getValue())) {
+
+            header('Location: ' . BASE_URL);
+            exit;
+        }
+    }
+
     // исполнители для задачи
     $executors_for_task = $_POST['executors_for_task'] ?? [(int)$_POST['executor']];
 
