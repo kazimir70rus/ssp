@@ -26,7 +26,7 @@ if (isset($_POST['submit'])) {
     if ($task->updateCondition($event) > 0) {
 
         // id_action = 17 это редактирование
-        if ($event['id_action'] == 17) {
+        if ($event['id_action'] === 17) {
             header('Location: ' . BASE_URL . 'edit_task/' . $event['id_task']);
             exit;
         }

@@ -588,6 +588,20 @@ Class Task
     }
 
 
+    // установка состояния задачи
+    function setTaskCondition($id_task, $id_condition)
+    {
+        $query = '
+            update tasks
+                set id_condition = :id_condition
+            where
+                id_task = :id_task
+        ';
+
+        return $this->db->updateData($query, ['id_task' => $id_task, 'id_condition' => $id_condition]);
+    }
+
+
     function updateCondition($event)
     {
         // проверим на удаление
@@ -599,9 +613,12 @@ Class Task
         // узнаем в какое состояние должна перейти задача
         $id_condition = $this->getConditionAction($event['id_action']);
 
-        if (($id_condition === 12) || (($this->getTaskCondition($event['id_task']) === 17) && ($event['id_action'] === 28))) {
-            // действие без изменения состояния или действия 28 приводит в состояние 17 из 17
-            $result = 1;
+        if (
+                ($id_condition === 12) ||
+                (($this->getTaskCondition($event['id_task']) === 17) && ($event['id_action'] === 28))
+           ) {
+            // действие "без изменения состояния" или действия 28 приводит в состояние 17 из 17
+            $result = 2;
         } else {
             // изменение состояния задачи
             $query = '
@@ -611,7 +628,8 @@ Class Task
                     id_task = :id_task
                     and id_condition in 
                         (select id_condition from enable_actions where id_action = :id_action and id_tip in 
-                            (select id_tip from task_users where id_task = :id_task and id_user = :id_user))';
+                            (select id_tip from task_users where id_task = :id_task and id_user = :id_user))
+            ';
 
             $result = $this
                         ->db
@@ -664,6 +682,11 @@ Class Task
         // задача выполнена, исполнитель сказал
         if ($event['id_action'] === 12) {
             $this->changeDateExec($event['id_task']);
+        }
+
+        // авт. перенос игнорируемой задачи
+        if ($event['id_action'] === 38) {
+            $this->setTaskCondition($event['id_task'], 21); 
         }
 
         // увеличим штрафные баллы если они не равны нулю
@@ -761,7 +784,7 @@ Class Task
     function getShortDetail($id_task, $id_user)
     {
         // информацию о задаче может редактировать только инициатор или контроллер,
-        // и только в сотоянии - новая
+        // и только в сотоянии - новая или в задача игнорируется
         $query = '
             select
                 name, data_begin, data_end, penalty, id_result, id_report,
@@ -775,7 +798,7 @@ Class Task
                 tasks
             where
                 tasks.id_task = :id_task
-                and id_condition in (9, 10)
+                and id_condition in (9, 10, 21)
             having 
                 id_iniciator = :id_user
                 or id_controller = :id_user';
@@ -814,9 +837,9 @@ Class Task
                 id_report = :id_report
             where
                 id_task = :id_task
-                and id_condition in (9, 10) 
+                and id_condition in (9, 10, 21) 
                 and id_user = :id_author
-                and id_tip in (5)';
+                and id_tip in (5, 3)';
 
         $result1 = $this
                         ->db
@@ -910,6 +933,12 @@ Class Task
     // сдвигает просроченную задачу, с начислением штрафных баллов
     function moveExpiredTask($id_task, $new_dt_end)
     {
+        // за один раз не более трех подряд переносов, подсчет подряд идущих авт.переносов
+        if ($this->checkAutoMove($id_task, true) >= 3) {
+
+            return;
+        }
+
         // создаем событие "перенос просроченной задачи" (18) админом (11)
         $event = [
             'id_task'   => $id_task,
@@ -920,6 +949,50 @@ Class Task
         ];
 
         $this->updateCondition($event);
+
+        // если это третий перенос, меняем состояние задачи
+        if ($this->checkAutoMove($id_task) > 2) {
+            // меняем состояние задачи
+            $event = [
+                'id_task'   => $id_task,
+                'id_action' => 38,
+                'comment'   => '',
+                'id_user'   => 11,
+            ];
+
+            $this->updateCondition($event);
+        }
+    }
+
+    // анализ истории, подсчет авт. переносов с учетом переносов пользователями
+    // возвращает true если это был третий перенос
+    function checkAutoMove($id_task, $only_auto = false)
+    {
+        $id_action = ($only_auto) ? 'and id_action = 18' : 'and id_action in (18, 23, 31, 33, 37)';
+
+        $query = '
+            select
+                count(id_action) as cnt
+            from
+                (
+                    select
+                        id_event, id_action
+                    from
+                        events
+                    where
+                        id_task = :id_task
+                        ' . $id_action . '
+                    order by
+                        id_event desc
+                    limit 3
+                ) as ca
+            where
+                id_action = 18
+        ';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        return (int)$result['cnt'];
     }
 
 

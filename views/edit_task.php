@@ -165,8 +165,8 @@ var app = new Vue({
             const end_dt = new Date(this.data_end);
 
             if (cur_dt > end_dt) {
-                alert('ddd');
-               flag = false;
+                alert('Проверьте даты!');
+                flag = false;
             }
 
             if (parseInt(this.penalty) <= 0) {
