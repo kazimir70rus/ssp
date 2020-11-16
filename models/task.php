@@ -21,11 +21,44 @@ Class Task
     function updateMasterDateEnd($id_task, $id_master)
     {
         // узнаем срок подзадачи
+        $dt_subtask = \DateTime::createFromFormat('Y-m-d', $this->getDateEnd($id_task));
+
+        if (!$dt_subtask) {
+            // некорректная дата, выход
+            return;
+        }
 
         // увеличиваем на 1 день
+        $dt_subtask->add(new \DateInterval('P1D'));
 
-        // если срок основной задачи меньше, увеличиваем
+        // узнаем срок основной задачи
+        $dt_task = \DateTime::createFromFormat('Y-m-d', $this->getDateEnd($id_master));
 
+        if (!$dt_task) {
+            // некорректная дата, выход
+            return;
+        }
+
+        // если срок основной задачи меньше, изменяем срок основной задачи
+        if ($dt_task < $dt_subtask) {
+            // при этом обкуляются даты выполнения, возможно это нужно переделать
+            $this->changeDateEnd($id_master, $dt_subtask->format('Y-m-d'));
+        }
+    }
+
+
+    // узнаем срок задачи
+    function getDateEnd($id_task)
+    {
+        $query = 'select data_end from tasks where id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if (is_array($result) && count($result) > 0) {
+            return $result['data_end'];
+        }
+
+        return false;
     }
 
 
@@ -1014,16 +1047,30 @@ Class Task
     //ищет просроченные задачи у заданного пользователя и переносит их
     function checkExpired($id_user)
     {
+        // выводит список задач, относящихся к пользователю,
+        // задачи имеющие подзадачи не выводятся
         $query = '
             select distinct
                 id_task,
                 data_end,
-                id_condition
+                id_condition,
+                cnt
             from
                 task_users
                 join tasks using (id_task)
+                left join (
+                    select
+                        id_master as id_task, count(id_master) as cnt
+                    from
+                        tasks
+                    where
+                        id_master != 0
+                    group by
+                        id_master
+                ) as st using (id_task)
             where
                 id_user = :id_user
+                and cnt is null
         ';
 
         $list_tasks = $this->db->getList($query, ['id_user' => $id_user]);
