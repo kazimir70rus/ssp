@@ -42,7 +42,7 @@ Class Task
         // если срок основной задачи меньше, изменяем срок основной задачи
         if ($dt_task < $dt_subtask) {
             // при этом обкуляются даты выполнения, возможно это нужно переделать
-            $this->changeDateEnd($id_master, $dt_subtask->format('Y-m-d'));
+            $this->changeDateEnd($id_master, \ssp\module\Datemod::dateNoWeekends($dt_subtask->format('Y-m-d')));
         }
     }
 
