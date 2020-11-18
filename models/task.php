@@ -571,7 +571,44 @@ Class Task
             }
         }
 
+               error_log('period = ' . $this->getRemainPeriod($id_task));
+        // если пользователь контроллер, и задача периодическая, дать возможность продлить
+        if (
+            $this->checkTip($id_task, $id_user, 4) &&
+            ($this->getRepetition($id_task) > 1) &&
+            ($this->getRemainPeriod($id_task) === 1)
+           ) {
+               // это последний период, необходимо добавить действие.
+               // id_action, name, need_dt, change_penalty
+               $result[] = [
+                   'id_action' => 40,
+                   'name' => 'продлить задачу',
+                   'need_dt' => 1,
+                   'change_penalty' => 0,
+               ];
+               error_log('add action');
+        }
+
         return array_values($result);
+    }
+
+
+    // возвращает число оставшихся периодов периодической задачи
+    function getRemainPeriod($id_task)
+    {
+        $query = '
+            select
+                count(id_task) as cnt
+            from
+                tasks
+            where
+                id_periodic = (select id_periodic from tasks where id_task = :id_task)
+                and data_end >= :dt
+        ';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task, 'dt' => date('Y-m-d')]);
+
+        return $result['cnt'];
     }
 
 
