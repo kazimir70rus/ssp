@@ -571,7 +571,10 @@ Class Task
             }
         }
 
-               error_log('period = ' . $this->getRemainPeriod($id_task));
+        error_log('1 = ' . $this->checkTip($id_task, $id_user, 4));
+        error_log('2 = ' . $this->getRepetition($id_task));
+        error_log('3 = ' . $this->getRemainPeriod($id_task));
+
         // если пользователь контроллер, и задача периодическая, дать возможность продлить
         if (
             $this->checkTip($id_task, $id_user, 4) &&
@@ -581,12 +584,11 @@ Class Task
                // это последний период, необходимо добавить действие.
                // id_action, name, need_dt, change_penalty
                $result[] = [
-                   'id_action' => 40,
-                   'name' => 'продлить задачу',
-                   'need_dt' => 1,
+                   'id_action'      => 40,
+                   'name'           => 'продлить задачу',
+                   'need_dt'        => 1,
                    'change_penalty' => 0,
                ];
-               error_log('add action');
         }
 
         return array_values($result);
@@ -608,7 +610,7 @@ Class Task
 
         $result = $this->db->getRow($query, ['id_task' => $id_task, 'dt' => date('Y-m-d')]);
 
-        return $result['cnt'];
+        return (int)$result['cnt'];
     }
 
 
@@ -774,9 +776,11 @@ Class Task
             $this->setTaskCondition($event['id_task'], 21); 
         }
 
-        // увеличим штрафные баллы если они не равны нулю
-        if (isset($event['penalty']) && (int)$event['penalty'] > 0) {
-            $this->changePenalty($event);
+        // продление периодической задачи 
+        if ($event['id_action'] === 40) {
+            // сформировать массив task_template на основе таблицы periodic
+
+            // изменить интервал
         }
 
         // при подтверждении выполнения потребителем, при И != П - 36
@@ -815,6 +819,30 @@ Class Task
         ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'dt_end' => $dt_end]);
+    }
+
+
+    // проверяет возможность изменения периодичности у задачи
+    // изменения доступны только для задач без истории либо в истории только редактирование
+    function enableChangePeriod($id_task)
+    {
+        $query = '
+            select
+                count(id_task) as cnt
+            from
+                events
+            where
+                id_task = :id_task
+                and id_action != 17
+        ';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if ((int)$result[cnt]) {
+            return false;
+        }
+
+        return true;
     }
 
 

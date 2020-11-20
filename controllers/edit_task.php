@@ -21,11 +21,14 @@ if (isset($_POST['save'])) {
         'repetition'    => (int)$_POST['repetition'],
     ];
 
-    // узнаем период повтора этой задачи до редактирования
+    // узнаем периодичность этой задачи до редактирования
     $prev_task_repetition = $task->getRepetition($task_info['id_task']);
 
     // узнаем историю, в зависимости от этого, возможно можно будет сделать вывод о 
     // блокировки смены периодичности
+    if (!$task->enableChangePeriod($task_info['id_task'])) {
+        $task_info['repetition'] = $prev_task_repetition;
+    }
 
     if (($prev_task_repetition == 1) && ($task_info['repetition'] == 1)) {
 
