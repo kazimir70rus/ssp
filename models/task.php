@@ -571,10 +571,6 @@ Class Task
             }
         }
 
-        error_log('1 = ' . $this->checkTip($id_task, $id_user, 4));
-        error_log('2 = ' . $this->getRepetition($id_task));
-        error_log('3 = ' . $this->getRemainPeriod($id_task));
-
         // если пользователь контроллер, и задача периодическая, дать возможность продлить
         if (
             $this->checkTip($id_task, $id_user, 4) &&
@@ -778,9 +774,7 @@ Class Task
 
         // продление периодической задачи 
         if ($event['id_action'] === 40) {
-            // сформировать массив task_template на основе таблицы periodic
-
-            // изменить интервал
+            $this->prolongPeriodic($event['id_task'], $event['dt']); 
         }
 
         // при подтверждении выполнения потребителем, при И != П - 36
@@ -791,6 +785,38 @@ Class Task
         }
 
         return (new \ssp\models\Event($this->db))->add($event);
+    }
+
+
+    // продляем периодическую задачу
+    function prolongPeriodic($id_task, $dt)
+    {
+        // узнаем шаблон периодической задачи
+        $id_periodic = $this->getIdPeriodic($id_task);
+        if (!$id_periodic) {
+
+            // id не получен, выходим
+            return;
+        }
+
+        // сформировать массив task_template на основе таблицы periodic
+
+        // изменить интервал
+    }
+
+
+    // узнаем Id периодической задачи
+    function getIdPeriodic($id_task)
+    {
+        $query = 'select id_periodic from tasks where id_task = :id_task';
+
+        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+
+        if (is_array($result)) {
+            return (int)$result['id_periodic'];
+        }
+
+        return 0;
     }
 
 
@@ -1251,6 +1277,48 @@ Class Task
         } else {
 
             return [];
+        }
+    }
+
+
+    // расчет интервала периодической задачи в формате DateInterval
+    function calcInterval($repetition, $dt_st, $custom_interval = 28)
+    {
+        $result['days'] = 0;
+        $result['offset'] = 0;
+        // формируем строку для интервала
+        switch ($repetition) {
+            case 2:
+                $result['interval'] = 'P1D';
+                break;
+            case 3:
+                $result['interval'] = 'P7D';
+                break;
+            case 4:
+                $result['interval'] = 'P1M';
+                $result['offset'] = (int)$dt_st->format('j') - 28;
+
+                if ($result['offset'] > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $result['offset'] . 'D'));
+                }
+
+                break;
+            case 7:
+                $result['interval'] = 'P3M';
+                $result['offset'] = (int)$dt_st->format('j') - 28;
+
+                if ($result['offset'] > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $result['offset'] . 'D'));
+                }
+
+                break;
+            case 5:
+                $result['interval'] = 'P1Y';
+                break;
+            case 6:
+                $days = ($custom_interval < 1) ? 28 : $custom_interval;
+                $result['interval'] = 'P' . $days . 'D';
+                break;
         }
     }
 
