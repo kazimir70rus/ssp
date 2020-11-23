@@ -69,9 +69,9 @@ if (isset($_POST['save'])) {
     }
 
     // создаем периодическую
-    $task_info['date_from'] = $_POST['data_end'];
-    $task_info['date_to']   = $_POST['date_to'];
-    $task_info['period']    = $_POST['period'] ?? 30;
+    $task_info['date_from']     = $_POST['data_end'];
+    $task_info['date_to']       = $_POST['date_to'];
+    $task_info['custom_period'] = ((int)$_POST['period'] < 1) ? 28 : (int)$_POST['period'];
 
     $task->createPeriodicTasks($task_info);
 

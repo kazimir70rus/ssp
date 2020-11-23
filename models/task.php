@@ -160,11 +160,11 @@ Class Task
                                             'id_result'     => $task_info['id_result'],
                                             'id_report'     => $task_info['id_report'],
                                             'repetition'    => $task_info['repetition'],
-                                            'interval'      => $task_info['interval'],
+                                            'interval'      => $task_info['custom_period'],
                                         ]);
 
         if ($result < 1) {
-            error_log($this->db->errInfo[1]);
+            error_log($this->db->errInfo[1] . ' - ' . $this->db->errInfo[2]);
         }
 
         return $result;
@@ -569,6 +569,15 @@ Class Task
                         unset($result[$index]);
                 }
             }
+
+            // если это перенос, и пользователь контролер и задача не ДЗ
+            if (
+                (((int)$action['id_action'] === 23) || ((int)$action['id_action'] === 32)) &&
+                ($this->checkTip($id_task, $id_user, 4)) &&
+                (!$this->taskTypeReport($id_task, 5))
+               ) {
+                    unset($result[$index]);
+            }
         }
 
         // если пользователь контроллер, и задача периодическая, дать возможность продлить
@@ -800,8 +809,26 @@ Class Task
         }
 
         // сформировать массив task_template на основе таблицы periodic
+        $task_template = $this->getParamPeriodic($id_periodic);
 
         // изменить интервал
+    }
+
+
+    // возвращает параметры периодической задачи
+    function getParamPeriodic($id_periodic)
+    {
+        $query = '
+            select
+                id_author, id_result, id_report, name, penalty, id_executor, id_iniciator, id_client, id_controller,
+                repetition, date_from, date_to, custom_interval as custom_period
+            from
+                periodic
+            where
+                id_periodic = :id_periodic
+        ';
+                
+        return $this->db->getRow($query, ['id_periodic' => $id_periodic]);
     }
 
 
@@ -1281,49 +1308,8 @@ Class Task
     }
 
 
-    // расчет интервала периодической задачи в формате DateInterval
-    function calcInterval($repetition, $dt_st, $custom_interval = 28)
-    {
-        $result['days'] = 0;
-        $result['offset'] = 0;
-        // формируем строку для интервала
-        switch ($repetition) {
-            case 2:
-                $result['interval'] = 'P1D';
-                break;
-            case 3:
-                $result['interval'] = 'P7D';
-                break;
-            case 4:
-                $result['interval'] = 'P1M';
-                $result['offset'] = (int)$dt_st->format('j') - 28;
-
-                if ($result['offset'] > 0) {
-                    $dt_st->sub(new \DateInterval('P' . $result['offset'] . 'D'));
-                }
-
-                break;
-            case 7:
-                $result['interval'] = 'P3M';
-                $result['offset'] = (int)$dt_st->format('j') - 28;
-
-                if ($result['offset'] > 0) {
-                    $dt_st->sub(new \DateInterval('P' . $result['offset'] . 'D'));
-                }
-
-                break;
-            case 5:
-                $result['interval'] = 'P1Y';
-                break;
-            case 6:
-                $days = ($custom_interval < 1) ? 28 : $custom_interval;
-                $result['interval'] = 'P' . $days . 'D';
-                break;
-        }
-    }
-
-
-    function createPeriodicTasks($task_template)
+    // создание периодических задач
+    function createPeriodicTasks($task_template, $id_periodic = 0)
     {
         // граница интервалов
         $dt_st = \DateTime::createFromFormat('Y-m-d', $task_template['date_from']);
@@ -1331,14 +1317,19 @@ Class Task
 
         $days = 0;
         $offset = 0;
+        $interval = '';
+
         // формируем строку для интервала
         switch ($task_template['repetition']) {
+
             case 2:
                 $interval = 'P1D';
                 break;
+
             case 3:
                 $interval = 'P7D';
                 break;
+            
             case 4:
                 $interval = 'P1M';
                 $offset = (int)$dt_st->format('j') - 28;
@@ -1346,8 +1337,8 @@ Class Task
                 if ($offset > 0) {
                     $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
                 }
-
                 break;
+
             case 7:
                 $interval = 'P3M';
                 $offset = (int)$dt_st->format('j') - 28;
@@ -1355,21 +1346,22 @@ Class Task
                 if ($offset > 0) {
                     $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
                 }
-
                 break;
+
             case 5:
                 $interval = 'P1Y';
                 break;
+            
             case 6:
-                $days = (int)($task_template['period'] ?? 30);
-                $days = ($days < 1) ? 30 : $days;
+                $days = ($task_template['custom_period'] < 1) ? 28 : $task_template['custom_period'];
                 $interval = 'P' . $days . 'D';
                 break;
         }
 
-        // записываем в таблицу периодических задач
-        $task_template['interval'] = $days;
-        $id_periodic = $this->addPeriodic($task_template);
+        if (!$id_periodic) {
+            // записываем в таблицу периодических задач
+            $id_periodic = $this->addPeriodic($task_template);
+        }
 
         $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
 
@@ -1415,6 +1407,8 @@ Class Task
 
             $dt_curr->add(new \DateInterval($interval));
         }
+
+        error_log('count tasks = ' . count($id_tasks));
 
         return $id_tasks;
     }

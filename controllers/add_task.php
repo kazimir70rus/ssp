@@ -45,9 +45,9 @@ if (isset($_POST['submit'])) {
 
     // добавление парметров в зависимости от типа задачи
     if ($task_info['repetition'] != 1) {
-        $task_info['date_from']  = $_POST['data_end'];
-        $task_info['date_to']    = $_POST['date_to'];
-        $task_info['period']     = $_POST['period'] ?? 30;
+        $task_info['date_from']     = $_POST['data_end'];
+        $task_info['date_to']       = $_POST['date_to'];
+        $task_info['custom_period'] = ((int)$_POST['period'] < 1) ? 28 : (int)$_POST['period'];
     } else {
         $task_info['data_begin'] = $_POST['data_beg'];
         $task_info['data_end']   = \ssp\module\Datemod::dateNoWeekends($_POST['data_end']);
