@@ -86,7 +86,7 @@ Class Task
                                                 'id_report'   => $task_info['id_report'],
                                                 'id_periodic' => $id_periodic,
                                                 'data_create' => $timestamp,
-                                                'id_master'   => $task_info['id_master_task'],
+                                                'id_master'   => $task_info['id_master_task'] ?? 0,
                                             ]);
 
         if ($id_task > 0) {
@@ -801,17 +801,20 @@ Class Task
     function prolongPeriodic($id_task, $dt)
     {
         // узнаем шаблон периодической задачи
-        $id_periodic = $this->getIdPeriodic($id_task);
-        if (!$id_periodic) {
-
-            // id не получен, выходим
+        $periodic = $this->getIdDtPeriodic($id_task);
+        
+        if (!is_array($periodic)) {
             return;
         }
 
         // сформировать массив task_template на основе таблицы periodic
-        $task_template = $this->getParamPeriodic($id_periodic);
+        $task_template = $this->getParamPeriodic($periodic['id_periodic']);
 
-        // изменить интервал
+        // продлеваем  задачу начиная со срока начала последнего периода
+        $task_template['date_last'] = $periodic['data_begin'];
+        $task_template['date_to'] = $dt;
+
+        $this->createPeriodicTasks($task_template, $periodic['id_periodic']);
     }
 
 
@@ -833,17 +836,11 @@ Class Task
 
 
     // узнаем Id периодической задачи
-    function getIdPeriodic($id_task)
+    function getIdDtPeriodic($id_task)
     {
-        $query = 'select id_periodic from tasks where id_task = :id_task';
+        $query = 'select id_periodic, data_begin from tasks where id_task = :id_task';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($result)) {
-            return (int)$result['id_periodic'];
-        }
-
-        return 0;
+        return $this->db->getRow($query, ['id_task' => $id_task]);
     }
 
 
@@ -1315,10 +1312,11 @@ Class Task
         $dt_st = \DateTime::createFromFormat('Y-m-d', $task_template['date_from']);
         $dt_en = \DateTime::createFromFormat('Y-m-d', $task_template['date_to']);
 
-        $days = 0;
-        $offset = 0;
-        $interval = '';
+        // по умолчанию считаем, что последняя итерация была 4 дня назад
+        $dt_last = \DateTime::createFromFormat('Y-m-d', $task_template['date_from']);
+        $dt_last->sub(new \DateInterval('P4D'));
 
+        $shift = 0;
         // формируем строку для интервала
         switch ($task_template['repetition']) {
 
@@ -1332,19 +1330,19 @@ Class Task
             
             case 4:
                 $interval = 'P1M';
-                $offset = (int)$dt_st->format('j') - 28;
+                $shift = (int)$dt_st->format('j') - 28;
 
-                if ($offset > 0) {
-                    $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
+                if ($shift > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $shift . 'D'));
                 }
                 break;
 
             case 7:
                 $interval = 'P3M';
-                $offset = (int)$dt_st->format('j') - 28;
+                $shift = (int)$dt_st->format('j') - 28;
 
-                if ($offset > 0) {
-                    $dt_st->sub(new \DateInterval('P' . $offset . 'D'));
+                if ($shift > 0) {
+                    $dt_st->sub(new \DateInterval('P' . $shift . 'D'));
                 }
                 break;
 
@@ -1356,11 +1354,18 @@ Class Task
                 $days = ($task_template['custom_period'] < 1) ? 28 : $task_template['custom_period'];
                 $interval = 'P' . $days . 'D';
                 break;
+
+            default:
+                return [];
+                break;
         }
 
         if (!$id_periodic) {
             // записываем в таблицу периодических задач
             $id_periodic = $this->addPeriodic($task_template);
+        } else {
+            // формируем дату последней созданной задачи
+            $dt_last = \DateTime::createFromFormat('Y-m-d', $task_template['date_last']);
         }
 
         $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
@@ -1374,7 +1379,7 @@ Class Task
                 
                 $dt_echo = \DateTime::createFromFormat('Y-m-d', $dt_curr->format('Y-m-d'));
 
-                switch ($offset) {
+                switch ($shift) {
                     case 3:
                         $dm = (int)$dt_echo->format('t') - 28;
                         $dt_echo->add(new \DateInterval('P' . $dm . 'D'));
@@ -1398,17 +1403,19 @@ Class Task
                 $task_template['data_end'] = $task_template['data_begin'];
 
                 // добавляем задачу
-                $id_task = $this->add($task_template, $id_periodic);
+                // дата добавляемых задач должна быть больше даты последней итерации
+                if ($dt_curr > $dt_last) {
+                    $id_task = $this->add($task_template, $id_periodic);
 
-                if ($id_task) {
-                    $id_tasks[] = $id_task;
+                    if ($id_task) {
+                        $id_tasks[] = $id_task;
+                    }
                 }
+
             }
 
             $dt_curr->add(new \DateInterval($interval));
         }
-
-        error_log('count tasks = ' . count($id_tasks));
 
         return $id_tasks;
     }
