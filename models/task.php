@@ -97,15 +97,17 @@ Class Task
             }
 
             $error = false;
-            $query = 'insert into
-                            task_users (id_task, id_user, id_tip)
-                       values
-                            (:id_task, :id_executor, 1),
-                            (:id_task, :id_client, 2),
-                            (:id_task, :id_iniciator, 3),
-                            (:id_task, :id_controller, 4),
-                            (:id_task, :id_author, 5)
-                            ';
+            $query = '
+                insert into
+                    task_users (id_task, id_user, id_tip)
+                values
+                    (:id_task, :id_executor, 1),
+                    (:id_task, :id_client, 2),
+                    (:id_task, :id_iniciator, 3),
+                    (:id_task, :id_controller, 4),
+                    (:id_task, :id_author, 5)
+            ';
+
             $result = $this
                             ->db
                             ->insertData($query, [
@@ -143,7 +145,8 @@ Class Task
                 date_to, penalty, id_result, id_report, repetition, custom_interval)
             values
                 (:id_author, :id_iniciator, :id_controller, :id_executor, :id_client, :name, 
-                :date_from, :date_to, :penalty, :id_result, :id_report, :repetition, :interval)';
+                :date_from, :date_to, :penalty, :id_result, :id_report, :repetition, :interval)
+        ';
 
         $result = $this
                     ->db
@@ -470,7 +473,8 @@ Class Task
             where
                 id_task = :id_task
             order by
-                data_end desc';
+                data_end desc
+        ';
 
         return $this
                     ->db
@@ -488,7 +492,8 @@ Class Task
                 enable_actions join actions using (id_action)
             where
                 enable_actions.id_condition = (select id_condition from tasks where id_task = :id_task)
-                and id_tip in (select id_tip from task_users where id_task = :id_task and id_user = :id_user)';
+                and id_tip in (select id_tip from task_users where id_task = :id_task and id_user = :id_user)
+        ';
 
         return $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -908,7 +913,8 @@ Class Task
                         and dt_wish is not null
                     order by
                         id_event desc
-                    limit 1';
+                    limit 1
+        ';
 
         return $this->db->getRow($query, ['id_task' => $id_task]);
     }
@@ -922,7 +928,8 @@ Class Task
             update tasks
                 set data_execut = :timestamp
             where
-                id_task = :id_task';
+                id_task = :id_task
+        ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'timestamp' => $timestamp]);
     }
@@ -964,7 +971,8 @@ Class Task
                 and id_condition in (9, 10, 21)
             having 
                 id_iniciator = :id_user
-                or id_controller = :id_user';
+                or id_controller = :id_user
+        ';
 
         return $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -979,7 +987,8 @@ Class Task
                 id_task = :id_task
                 and id_condition = 10
                 and id_user = :id_user
-                and id_tip in (5)';
+                and id_tip in (5)
+        ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -1002,7 +1011,8 @@ Class Task
                 id_task = :id_task
                 and id_condition in (9, 10, 21) 
                 and id_user = :id_author
-                and id_tip in (5, 3)';
+                and id_tip in (5, 3)
+        ';
 
         $result1 = $this
                         ->db
@@ -1017,31 +1027,37 @@ Class Task
                                                 'id_report'  => $task_info['id_report'],
                                              ]);
 
-        $query = '  update task_users
-                        set id_user = :id_executor
-                    where
-                        id_task = :id_task
-                        and id_tip = 1';
+        $query = '
+            update task_users
+                set id_user = :id_executor
+            where
+                id_task = :id_task
+                and id_tip = 1
+        ';
         $result2 = $this->db->updateData($query, [
                                                     'id_task'     => $task_info['id_task'],
                                                     'id_executor' => $task_info['id_executor'],
                                                  ]);
 
-        $query = '  update task_users
-                        set id_user = :id_client
-                    where
-                        id_task = :id_task
-                        and id_tip = 2';
+        $query = '
+            update task_users
+                set id_user = :id_client
+            where
+                id_task = :id_task
+                and id_tip = 2
+        ';
         $result3 = $this->db->updateData($query, [
                                                     'id_task'   => $task_info['id_task'],
                                                     'id_client' => $task_info['id_client'],
                                                  ]);
 
-        $query = '  update task_users
-                        set id_user = :id_controller
-                    where
-                        id_task = :id_task
-                        and id_tip = 4';
+        $query = '
+            update task_users
+                set id_user = :id_controller
+            where
+                id_task = :id_task
+                and id_tip = 4
+        ';
         $result4 = $this->db->updateData($query, [
                                                     'id_task'       => $task_info['id_task'],
                                                     'id_controller' => $task_info['id_controller'],
@@ -1069,7 +1085,8 @@ Class Task
                 id_task = :id_task
                 and id_condition = 9
                 and id_tip = 1
-                and id_user = :id_user';
+                and id_user = :id_user
+        ';
 
         return $this->db->updateData($query, ['id_task' => $id_task, 'id_user' => $id_user]);
     }
@@ -1424,12 +1441,14 @@ Class Task
     // возвращает период повторений для указанной задачи
     function getRepetition($id_task)
     {
-        $query = 'select
-                        if(repetition is null, 1, repetition) as repetition
-                  from
-                        tasks left join periodic using (id_periodic)
-                  where
-                        id_task = :id_task';
+        $query = '
+            select
+                if(repetition is null, 1, repetition) as repetition
+            from
+                tasks left join periodic using (id_periodic)
+            where
+                id_task = :id_task
+        ';
 
         $result = $this->db->getRow($query, ['id_task' => $id_task]);
 
@@ -1500,7 +1519,8 @@ Class Task
                     where
                         data_end >= :cur_date and
                         id_condition in (9, 10) and
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task))
+        ';
 
         if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
@@ -1516,7 +1536,8 @@ Class Task
                         where
                             data_end > :cur_date and
                             id_condition in (9, 10) and
-                            id_periodic = (select id_periodic from tasks where id_task = :id_task))';
+                            id_periodic = (select id_periodic from tasks where id_task = :id_task))
+            ';
 
             if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
@@ -1524,7 +1545,8 @@ Class Task
                     delete from
                         periodic
                     where
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+                        id_periodic = (select id_periodic from tasks where id_task = :id_task)
+                ';
 
                 if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
 
@@ -1547,7 +1569,8 @@ Class Task
                             where
                                 data_end > :cur_date and
                                 id_condition in (9, 10) and
-                                id_periodic = (select id_periodic from tasks where id_task = :id_task)';
+                                id_periodic = (select id_periodic from tasks where id_task = :id_task)
+                        ';
 
                         if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
 
@@ -1583,7 +1606,8 @@ Class Task
                 id_tip = 1
                 and id_task in (
                     select id_task from task_users where id_user = :id_user and id_tip in (2, 3, 4)
-                )';
+                )
+        ';
 
         return $this->db->getList($query, ['id_user' => $id_user]);
     }
