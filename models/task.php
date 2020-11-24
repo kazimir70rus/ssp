@@ -86,7 +86,7 @@ Class Task
                                                 'id_report'   => $task_info['id_report'],
                                                 'id_periodic' => $id_periodic,
                                                 'data_create' => $timestamp,
-                                                'id_master'   => $task_info['id_master_task'] ?? 0,
+                                                'id_master'   => $task_info['id_master_task'],
                                             ]);
 
         if ($id_task > 0) {
@@ -818,6 +818,7 @@ Class Task
         // продлеваем  задачу начиная со срока начала последнего периода
         $task_template['date_last'] = $periodic['data_begin'];
         $task_template['date_to'] = $dt;
+        $task_template['id_master_task'] = 0;
 
         $this->createPeriodicTasks($task_template, $periodic['id_periodic']);
     }
