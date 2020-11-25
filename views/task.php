@@ -80,6 +80,7 @@
             <td><?=$task_info['periodicity'] . ' ' . $describ?></td>
         </tr>
     </table>
+    <div class="err"><?=$msg?></div>
     <br>
     <form method="post" @submit="checkForm">
         <input type="hidden" name="id_task" value="<?=$id_task?>">

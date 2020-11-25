@@ -116,5 +116,16 @@ switch ((int)$task_info['repetition']) {
         break;
 }
 
+if (
+    $task->checkTip($id_task, $id_user->getValue(), 4) &&
+    ($task->getRepetition($id_task) > 1) &&
+    ($task->getRemainPeriod($id_task) === 1)
+   ) {
+    $msg = 'Наступил последний период этой периодической задачи!<br>
+            Для продления выберите действие "продлить задачу"';
+} else {
+    $msg = '';
+}
+
 require_once 'views/task.php';
 
