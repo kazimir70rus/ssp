@@ -1387,6 +1387,7 @@ Class Task
         }
 
         $dt_curr = \DateTime::createFromFormat('Y-m-d', $dt_st->format('Y-m-d'));
+        $dt_now = \DateTime::createFromFormat('Y-m-d', date('Y-m-d'));
 
         $id_tasks = [];
 
@@ -1421,8 +1422,8 @@ Class Task
                 $task_template['data_end'] = $task_template['data_begin'];
 
                 // добавляем задачу
-                // дата добавляемых задач должна быть больше даты последней итерации
-                if ($dt_curr > $dt_last) {
+                // дата добавляемых задач должна быть больше даты последней итерации и больше или равен текущей дате
+                if (($dt_curr > $dt_last) && ($dt_curr >= $dt_now)) {
                     $id_task = $this->add($task_template, $id_periodic);
 
                     if ($id_task) {
