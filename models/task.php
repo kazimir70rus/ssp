@@ -610,7 +610,7 @@ Class Task
     {
         $query = '
             select
-                count(id_task) as cnt
+                count(distinct data_end) as cnt
             from
                 tasks
             where
