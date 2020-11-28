@@ -52,13 +52,7 @@ Class Task
     {
         $query = 'select data_end from tasks where id_task = :id_task';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($result) && count($result) > 0) {
-            return $result['data_end'];
-        }
-
-        return false;
+        return $this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -74,6 +68,8 @@ Class Task
             values
                 (:name, :data_begin, :data_end, :penalty, :id_result, :id_report, :id_periodic, :data_create, :id_master)
         ';
+
+        $task_info['id_master_task'] = $task_info['id_master_task'] ?? 0;
 
         $id_task = $this
                         ->db
@@ -504,28 +500,16 @@ Class Task
     {
         $query = 'select need_file from tasks join type_report using (id_report) where id_task = :id_task';
 
-        $data = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if ((int)$data['need_file'] === 0) {
-            return false;
-        }
-
-        return true;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
     // возвращает true если для выполнения указанного дейтсвия требуется проверка на наличие ДЗ
     function actionCheckDok($id_action)
     {
-        $query = 'select count(id_action) as cnt from actions where id_action = :id_action and check_dz = 1';
+        $query = 'select count(id_action) from actions where id_action = :id_action and check_dz = 1';
 
-        $result = $this->db->getRow($query, ['id_action' => $id_action]);
-
-        if ((int)$result['cnt']) {
-            return true;
-        }
-
-        return false;
+        return $this->db->getValue($query, ['id_action' => $id_action]);
     }
 
 
@@ -589,7 +573,7 @@ Class Task
         if (
             $this->checkTip($id_task, $id_user, 4) &&
             ($this->getRepetition($id_task) > 1) &&
-            ($this->getRemainPeriod($id_task) === 1)
+            ($this->getRemainPeriod($id_task) <= 1)
            ) {
                // это последний период, необходимо добавить действие.
                // id_action, name, need_dt, change_penalty
@@ -610,7 +594,7 @@ Class Task
     {
         $query = '
             select
-                count(distinct data_end) as cnt
+                count(distinct data_end)
             from
                 tasks
             where
@@ -618,59 +602,47 @@ Class Task
                 and data_end >= :dt
         ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task, 'dt' => date('Y-m-d')]);
-
-        return (int)$result['cnt'];
+        return (int)$this->db->getValue($query, ['id_task' => $id_task, 'dt' => date('Y-m-d')]);
     }
 
 
-    // удаление задачи
+    // удаление задачи с заданным id
     function deleteTask($id_task)
     {
-        // узнаем тип задачи
+        // узнаем тип задачи, если 0 - задача одноразовая, число больше 0 - периодическая
         $query = 'select id_periodic from tasks where id_task = :id_task';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
+        $id_periodic = $this->db->getValue($query, ['id_task' => $id_task]);
 
-        if (count($result) > 0) {
-
-            if ((int)$result['id_periodic'] == 0) {
-
-                return $this->delOneTimeTask($id_task);
-            }
-
-            $result = $this->delPeriodicTask($id_task);
-
-            return $result;
+        if ($id_periodic === false) {
+            // задачи с таким id не существует, выходим
+            return false;
         }
 
-        return false;
+        if ((int)$id_periodic === 0) {
+
+            return $this->delOneTimeTask($id_task);
+        }
+
+        return $this->delPeriodicTask($id_periodic);
     }
 
 
     // проверяет тип отчета в задаче, по умолчанию проверяет на ДЗ
     function taskTypeReport($id_task, $id_report = 5)
     {
-        $query = 'select count(id_task) as cnt from tasks where id_task = :id_task and id_report = :id_report';
+        $query = 'select count(id_task) from tasks where id_task = :id_task and id_report = :id_report';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_report' => $id_report]);
-
-        if ((int)$result['cnt']) {
-            return true;
-        }
-
-        return false;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task, 'id_report' => $id_report]);
     }
 
 
-    // возвращаем состояние задачи в которое переходит задача после дейсвтия
+    // возвращаем состояние задачи в которое переходит задача после действия
     function getConditionAction($id_action)
     {
         $query = 'select id_condition from actions where id_action = :id_action';
 
-        $result = $this->db->getRow($query, ['id_action' => $id_action]);
-
-        return (int)$result['id_condition'];
+        return (int)$this->db->getValue($query, ['id_action' => $id_action]);
     }
 
 
@@ -679,9 +651,7 @@ Class Task
     {
         $query = 'select id_condition from tasks where id_task = :id_task';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        return (int)$result['id_condition'];
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -806,21 +776,21 @@ Class Task
     function prolongPeriodic($id_task, $dt)
     {
         // узнаем шаблон периодической задачи
-        $periodic = $this->getIdDtPeriodic($id_task);
+        $id_periodic = $this->getIdPeriodic($id_task);
         
-        if (!is_array($periodic)) {
+        if (!$id_periodic) {
             return;
         }
 
         // сформировать массив task_template на основе таблицы periodic
-        $task_template = $this->getParamPeriodic($periodic['id_periodic']);
+        $task_template = $this->getParamPeriodic($id_periodic);
 
-        // продлеваем  задачу начиная со срока начала последнего периода
-        $task_template['date_last'] = $periodic['data_begin'];
+        // продлеваем  задачу начиная со срока последнего периода
+        $task_template['date_last'] = $this->getLastDtPeriod($id_periodic);
         $task_template['date_to'] = $dt;
         $task_template['id_master_task'] = 0;
 
-        $this->createPeriodicTasks($task_template, $periodic['id_periodic']);
+        $this->createPeriodicTasks($task_template, $id_periodic);
     }
 
 
@@ -841,12 +811,21 @@ Class Task
     }
 
 
-    // узнаем Id периодической задачи
-    function getIdDtPeriodic($id_task)
+    // узнаем последнию задачу в периодической
+    function getLastDtPeriod($id_periodic)
     {
-        $query = 'select id_periodic, data_begin from tasks where id_task = :id_task';
+        $query = 'select data_end from tasks where id_periodic = :id_periodic order by data_end desc limit 1';
 
-        return $this->db->getRow($query, ['id_task' => $id_task]);
+        return $this->db->getValue($query, ['id_periodic' => $id_periodic]);
+    }
+
+
+    // узнаем Id периодической задачи
+    function getIdPeriodic($id_task)
+    {
+        $query = 'select id_periodic from tasks where id_task = :id_task';
+
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -880,11 +859,11 @@ Class Task
 
     // проверяет возможность изменения периодичности у задачи
     // изменения доступны только для задач без истории либо в истории только редактирование
-    function enableChangePeriod($id_task)
+    function disableChangePeriod($id_task)
     {
         $query = '
             select
-                count(id_task) as cnt
+                count(id_task)
             from
                 events
             where
@@ -892,29 +871,24 @@ Class Task
                 and id_action != 17
         ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if ((int)$result[cnt]) {
-            return false;
-        }
-
-        return true;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
     // запрашиваем желаемую дату переноса
     function getRequiredDate($id_task)
     {
-        $query = '  select
-                        dt_wish
-                    from
-                        events
-                    where
-                        id_task = :id_task
-                        and dt_wish is not null
-                    order by
-                        id_event desc
-                    limit 1
+        $query = '
+            select
+                dt_wish
+            from
+                events
+            where
+                id_task = :id_task
+                and dt_wish is not null
+            order by
+                id_event desc
+            limit 1
         ';
 
         return $this->db->getRow($query, ['id_task' => $id_task]);
@@ -1153,7 +1127,7 @@ Class Task
 
         $query = '
             select
-                count(id_action) as cnt
+                count(id_action)
             from
                 (
                     select
@@ -1171,9 +1145,7 @@ Class Task
                 id_action = 18
         ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        return (int)$result['cnt'];
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -1246,21 +1218,14 @@ Class Task
     {
         $query = '
             select
-                count(distinct id_user) as cnt
+                count(distinct id_user)
             from
                 task_users
             where
                 id_task = :id_task and id_tip in (2, 3)
         ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($result) && ((int)$result['cnt'] === 1)) {
-
-            return true;
-        }
-
-        return false;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -1280,30 +1245,16 @@ Class Task
     // проверяет роль пользователя в задаче
     function checkTip($id_task, $id_user, $id_tip)
     {
-        $query = 'select count(id_user) as cnt from task_users where id_task = :id_task and id_user = :id_user and id_tip = :id_tip';
+        $query = 'select count(id_user) from task_users where id_task = :id_task and id_user = :id_user and id_tip = :id_tip';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_tip' => $id_tip]);
-
-        if ((int)$result['cnt']) {
-            return true;
-        }
-
-        return false;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task, 'id_user' => $id_user, 'id_tip' => $id_tip]);
     }
 
 
     // возвращает роль или роли пользователя в задаче
     function getTip($id_task, $id_user)
     {
-        $query = '
-            select
-                id_tip
-            from
-                task_users
-            where
-                id_task = :id_task
-                and id_user = :id_user
-        ';
+        $query = 'select id_tip from task_users where id_task = :id_task and id_user = :id_user';
 
         $result = $this->db->getList($query, ['id_task' => $id_task, 'id_user' => $id_user]);
 
@@ -1445,20 +1396,14 @@ Class Task
     {
         $query = '
             select
-                if(repetition is null, 1, repetition) as repetition
+                if(repetition is null, 1, repetition)
             from
                 tasks left join periodic using (id_periodic)
             where
                 id_task = :id_task
         ';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if ($result != -1) {
-            return $result['repetition'];
-        } else {
-            return false;
-        }
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 
 
@@ -1502,8 +1447,9 @@ Class Task
 
 
     // удаление периодической задачи и ее потомков
-    function delPeriodicTask($id_task)
+    function delPeriodicTask($id_periodic)
     {
+        error_log('try del');
         $this->db->beginTransaction();
         $result = false;
 
@@ -1521,10 +1467,11 @@ Class Task
                     where
                         data_end >= :cur_date and
                         id_condition in (9, 10) and
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task))
+                        id_periodic = :id_periodic
+                )
         ';
 
-        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+        if ($this->db->updateData($query, ['id_periodic' => $id_periodic, 'cur_date' => $cur_date]) != -1) {
 
             $query = '
                 delete from
@@ -1538,32 +1485,29 @@ Class Task
                         where
                             data_end > :cur_date and
                             id_condition in (9, 10) and
-                            id_periodic = (select id_periodic from tasks where id_task = :id_task))
+                            id_periodic = :id_periodic
+                    )
             ';
 
-            if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+            if ($this->db->updateData($query, ['id_periodic' => $id_periodic, 'cur_date' => $cur_date]) != -1) {
 
                 $query = '
                     delete from
                         periodic
                     where
-                        id_periodic = (select id_periodic from tasks where id_task = :id_task)
+                        id_periodic = :id_periodic
                 ';
 
-                if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
+                if ($this->db->updateData($query, ['id_periodic' => $id_periodic]) != -1) {
 
                     $query = '
                         delete from
                             penaltys
                         where
-                            id_task in (
-                                select id_task from tasks where id_periodic = (
-                                    select id_periodic from tasks where id_task = :id_task
-                                )
-                            )
+                            id_task in (select id_task from tasks where id_periodic = :id_periodic)
                     ';
 
-                    if ($this->db->updateData($query, ['id_task' => $id_task]) != -1) {
+                    if ($this->db->updateData($query, ['id_periodic' => $id_periodic]) != -1) {
 
                         $query = '
                             delete from
@@ -1571,10 +1515,10 @@ Class Task
                             where
                                 data_end > :cur_date and
                                 id_condition in (9, 10) and
-                                id_periodic = (select id_periodic from tasks where id_task = :id_task)
+                                id_periodic = :id_periodic
                         ';
 
-                        if ($this->db->updateData($query, ['id_task' => $id_task, 'cur_date' => $cur_date]) != -1) {
+                        if ($this->db->updateData($query, ['id_periodic' => $id_periodic, 'cur_date' => $cur_date]) != -1) {
 
                             $result = true;
                         }
@@ -1585,10 +1529,12 @@ Class Task
 
         // завершаем транзакцию
         if ($result) {
+            error_log('del ok');
             $this->db->commit();
  
             return true;
         } else {
+            error_log('del error');
             $this->db->rollBack();
 
             return false;

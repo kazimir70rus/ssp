@@ -36,6 +36,22 @@ Class Db
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
+    function getValue($query, $params = [])
+    {
+        $stmt = $this
+                    ->db
+                    ->prepare($query);
+        $stmt->execute($params);
+
+        $result = $stmt->fetch(\PDO::FETCH_NUM);
+
+        if ($result) {
+            return $result[0];
+        }
+
+        return false;
+    }
+
     function insertData($query, $params = [])
     {
         $stmt = $this

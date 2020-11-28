@@ -21,12 +21,20 @@ if (isset($_POST['save'])) {
         'repetition'    => (int)$_POST['repetition'],
     ];
 
+    // проверка на существование задачи с заданным id, и права доступа текущего пользователя на нее
+    if (!$task->checkAccess($task_info['id_task'], $id_user->getValue())) {
+ 
+        header('Location: ' . BASE_URL);
+        exit;
+    }
+
     // узнаем периодичность этой задачи до редактирования
     $prev_task_repetition = $task->getRepetition($task_info['id_task']);
 
     // узнаем историю, в зависимости от этого, возможно можно будет сделать вывод о 
     // блокировки смены периодичности
-    if (!$task->enableChangePeriod($task_info['id_task'])) {
+    if ($task->disableChangePeriod($task_info['id_task'])) {
+        
         $task_info['repetition'] = $prev_task_repetition;
     }
 
@@ -49,7 +57,7 @@ if (isset($_POST['save'])) {
         // раньше была периодической, теперь или разовая или периодическая
 
         // удаляем с не наступившими сроками 
-        $task->delPeriodicTask($task_info['id_task']);
+        $task->delPeriodicTask($task->getIdPeriodic($task_info['id_task']));
 
         if ($task_info['repetition'] == 1) {
             // создаем разовую задачу
