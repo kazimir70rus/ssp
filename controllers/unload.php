@@ -2,7 +2,9 @@
 
 $task = new \ssp\models\Task($db);
 
-$data = $task->getReport($id_user->getValue());
+$list_id_task = new \ssp\module\SessionVar('list_tasks');
+
+$data = $task->getReport($id_user->getValue(), $list_id_task->getValue());
 
 $content = "Тип;Дата создания;Время создания;Срок;Задача;Инициатор;Потребитель;Исполнитель;Контроллер;Вид результата;Вид отчета;Вес;Состояние;Дата исполнения;Дата подтверждения;Штрафы;\n";
 

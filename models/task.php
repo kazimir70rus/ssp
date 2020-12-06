@@ -10,7 +10,6 @@ Class Task
 {
     private $db;
 
-
     function __construct($db)
     {
         $this->db = $db;
@@ -1561,7 +1560,7 @@ Class Task
     }
 
 
-    function getReport($id_user)
+    function getReport($id_user, $list_id_tasks)
     {
         $query = '
             select distinct
@@ -1605,7 +1604,8 @@ Class Task
                 join type_report using (id_report)
                 join type_result using (id_result)
               where
-                task_users.id_user = :id_user
+                task_users.id_user = :id_user and
+                id_task in(' . implode(",", $list_id_tasks). ')
               order by
                 date_end,
                 charges_penalty desc
