@@ -24,5 +24,11 @@ Class TaskTest extends \PHPUnit\Framework\TestCase
         $this->assertIsString($this->task->getDateEnd(3));
     }
 
+    public function testiniciatorIsClient()
+    {
+        // изпользуем заранее заданные задачи
+        $this->assertSame(true, $this->task->iniciatorIsClient(1800));
+        $this->assertSame(false, $this->task->iniciatorIsClient(1802));
+    }
 }
 

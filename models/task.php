@@ -1237,6 +1237,7 @@ Class Task
 
 
     // возвращает истину если инициатор и потребитель одно лицо, и фальш в противном случае
+    // если запрос вернул 1 это означает что П = И, а если 2, то П != И
     function iniciatorIsClient($id_task)
     {
         $query = '
@@ -1248,7 +1249,12 @@ Class Task
                 id_task = :id_task and id_tip in (2, 3)
         ';
 
-        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
+        if ((int)$this->db->getValue($query, ['id_task' => $id_task]) === 1) {
+
+            return true;
+        }
+
+        return false;
     }
 
 
