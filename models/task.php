@@ -1122,6 +1122,27 @@ Class Task
     // возвращает true если это был третий перенос
     function checkAutoMove($id_task, $only_auto = false)
     {
+        // проверим была ли задача игрориуемой, чтобы начать отсчет переносов с этого момента
+        $query = '
+            select
+                id_event
+            from
+                events
+            where
+                id_task = :id_task
+                and id_action = 38
+            order by
+                id_event desc
+            limit 1
+        ';
+
+        $id_event = (int)$this->db->getValue($query, ['id_task' => $id_task]);
+
+        // задача не игнорировалась, начинаем отсчет с начала
+        if ($id_event === 0) {
+            $id_event = 1;
+        }
+
         $id_action = ($only_auto) ? 'and id_action = 18' : 'and id_action in (18, 23, 31, 33, 37)';
 
         $query = '
@@ -1136,6 +1157,7 @@ Class Task
                     where
                         id_task = :id_task
                         ' . $id_action . '
+                        and id_event > :id_event
                     order by
                         id_event desc
                     limit 3
@@ -1144,7 +1166,7 @@ Class Task
                 id_action = 18
         ';
 
-        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
+        return (int)$this->db->getValue($query, ['id_task' => $id_task, 'id_event' => $id_event]);
     }
 
 
@@ -1182,6 +1204,7 @@ Class Task
         $dt_now = \DateTime::createFromFormat('Y-m-d H:i', date('Y-m-d H:i'));
 
         foreach ($list_tasks as $one_task) {
+            
             // просмотриваем задачи в состоянии "выполняется" и "новая"
             if (
                 ((int)$one_task['id_condition'] == 1) ||
@@ -1201,6 +1224,7 @@ Class Task
 
                         if (($dt_end->format('N') != '6') && ($dt_end->format('N') != '7')) {
                             // если выпадает на будни, то переносим с начислением штрафных баллов
+
                             $this->moveExpiredTask($one_task['id_task'], $dt_end->format('Y-m-d'));
                         }
 
