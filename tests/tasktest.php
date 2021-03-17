@@ -11,7 +11,6 @@ Class TaskTest extends \PHPUnit\Framework\TestCase
     protected $guide;
     protected $task;
 
-
     protected function setUp(): void
     {
         $this->db = new \ssp\module\Db(new \ssp\configuration\DB);
@@ -19,9 +18,20 @@ Class TaskTest extends \PHPUnit\Framework\TestCase
         $this->guide = new \ssp\models\Guide($this->db);
     }
 
+    protected function tearDown(): void
+    {
+    }
+
     public function testgetDateEnd()
     {
+        // возвращает строку
         $this->assertIsString($this->task->getDateEnd(3));
+
+        // возвращает эта строка является датой
+        $this->assertNotFalse(DateTime::createfromFormat('Y-m-d', $this->task->getDateEnd(3)));
+
+        // при несуществующей задаче, возвращает false 
+        $this->assertFalse($this->task->getDateEnd(1));
     }
 
     public function testiniciatorIsClient()

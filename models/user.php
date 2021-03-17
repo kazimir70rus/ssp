@@ -55,12 +55,7 @@ Class User
 
     function getListSubordinate($id_parent)
     {
-        $query ='
-            (select id_user, name from users where id_user = :id_parent)
-            union
-            (select id_user, name from users where id_parent = :id_parent)
-            order by name
-        ';
+        $query ='select id_user, name from users where id_parent = :id_parent order by name';
 
         return $this
                     ->db
@@ -89,18 +84,28 @@ Class User
     }
 
 
-    // формирование списка возможных инициаторов, если пользователь контроллер, то возвращает его и начальника
-    function getIniciators($id_user) {
-        $query = '  select
-                        id_user, name
-                    from
-                        users
-                    where
-                        id_user in (
-                            :id_user, 
-                            (select id_parent from users where id_user = :id_user and is_controller = 1)
-                        )';
-        return $this->db->getList($query, ['id_user' => $id_user]);
+    // формирование списка возможных инициаторов, если пользователь контроллер, то возвращаем список всех возможных инициаторов
+    // если не контроллер, то сам пользователь является инициатором
+    function getIniciators($id_user)
+    {
+        if ($this->isController($id_user)) {
+            $query = 'select id_user, name from users where id_user in (select distinct id_parent from users) order by name';
+
+            return $this->db->getList($query);
+        } else {
+            $query = 'select id_user, name from users where id_user = :id_user';
+
+            return $this->db->getList($query, ['id_user' => $id_user]);
+        }
+    }
+
+
+    // возвращает 1 если пользователь является контроллером, и 0 если не является
+    function isController($id_user)
+    {
+        $query = 'select is_controller from users where id_user = :id_user';
+
+        return (int)$this->db->getValue($query, ['id_user' => $id_user]);
     }
 
 
