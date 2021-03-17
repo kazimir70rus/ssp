@@ -1,3 +1,4 @@
 .hg/**
 *.swp
 attachdoks/*
+/configuration/db.php

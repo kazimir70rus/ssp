@@ -98,7 +98,6 @@
         <caption>задачи к выполнению</caption>
         <tr>
             <th style="width: 1.5rem"></th>
-            <th style="width: 9rem">создание</th>
             <th style="width: 6rem">срок</th>
             <th>задача</th>
             <th style="width: 3rem">пот.</th>
@@ -110,7 +109,6 @@
         <template v-for="task in tasks_for_exe">
             <tr>
                 <td>{{task.periodicity}}</td>
-                <td>{{task.data_create}}</td>
                 <td>{{task.data_end}}</td>
                 <td>
                     <a v-bind:href="'<?=BASE_URL?>task/' + task.id_task">
@@ -130,7 +128,6 @@
         <caption>задачи на контролe</caption>
         <tr>
             <th style="width: 1.5rem"></th>
-            <th style="width: 9rem">создание</th>
             <th style="width: 6rem">срок</th>
             <th>задача</th>
             <th style="width: 3rem">исп.</th>
@@ -144,7 +141,6 @@
         <template v-for="task in tasks_for_ctr">
             <tr>
                 <td>{{task.periodicity}}</td>
-                <td>{{task.data_create}}</td>
                 <td>{{task.data_end}}</td>
                 <td>
                     <a v-bind:href="'<?=BASE_URL?>task/' + task.id_task">
