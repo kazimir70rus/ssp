@@ -64,7 +64,7 @@ Class User
 
     function getListControllers($id_parent)
     {
-        $query ='select id_user, name from users where id_parent = :id_parent and is_controller = 1 order by name';
+        $query ='select id_user, name from users where is_controller = 1 order by name';
 
         return $this
                     ->db
@@ -114,12 +114,6 @@ Class User
     {
         $query = 'select id_user from task_users where id_tip = 3 and id_task = :id_task';
 
-        $result = $this->db->getRow($query, ['id_task' => $id_task]);
-
-        if (is_array($result)) {
-            return $result['id_user'];
-        }
-
-        return 0;
+        return (int)$this->db->getValue($query, ['id_task' => $id_task]);
     }
 }
