@@ -168,8 +168,7 @@ var app = new Vue({
         },
         iniciator: function () {
             this.getExecutors(this.iniciator);
-            this.getControllers(this.iniciator);
-            this.getClients(this.iniciator);
+            this.getControllers();
         },
         name1: function () {
             if (this.name1 != '') {
@@ -284,15 +283,15 @@ var app = new Vue({
                     }
                     this.executor = this.executors[0].id_user;
 
-                    this.getClients(this.iniciator);
+                    this.getClients();
                 },
                 function (err) {
                     console.log(err);
                 }
             );
         },
-        getControllers: function (iniciator) {
-            this.$http.get(this.server + 'getcontrollers/' + iniciator).then(
+        getControllers: function () {
+            this.$http.get(this.server + 'getcontrollers/').then(
                 function (otvet) {
                     this.controllers = otvet.data;
 
@@ -317,15 +316,14 @@ var app = new Vue({
 
             return '';
         },
-        getClients: function (iniciator) {
-            // потребители выбираются из числа подчиненных плюс инициатор
-            this.$http.get(this.server + 'getexecutors/' + iniciator).then(
+        getClients: function () {
+            // потребители выбираются из общего списка сотрудников
+            this.$http.get(this.server + 'getclients/').then(
                 function (otvet) {
                     this.clients = otvet.data;
 
-                    // по умолчанию инициатор является потребителем
-                    this.clients.unshift(this.iniciators[this.getIndex(this.iniciator, this.iniciators)]);
-                    this.client = this.clients[0].id_user;
+                    // по умолчанию инициатор является потребителем,
+                    this.client = this.iniciator;
                 },
                 function (err) {
                     console.log(err);

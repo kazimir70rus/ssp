@@ -44,15 +44,18 @@ Class User
                     ->getRow($query, ['login' => $login, 'pass' => $pass, 'id_organisation' => $id_organisation]);
     }
 
+    // возвращает список всех пользователей
     function getList()
     {
-        $query ='select id_user, name from users order by name';
+        $query ='select id_user, name from users where id_user not in (11) order by name';
 
         return $this
                     ->db
                     ->getList($query);
     }
 
+
+    // возвращает список подчиненных указанного пользователя
     function getListSubordinate($id_parent)
     {
         $query ='select id_user, name from users where id_parent = :id_parent order by name';
@@ -62,13 +65,13 @@ Class User
                     ->getList($query, ['id_parent' => $id_parent]);
     }
 
-    function getListControllers($id_parent)
+    function getListControllers()
     {
         $query ='select id_user, name from users where is_controller = 1 order by name';
 
         return $this
                     ->db
-                    ->getList($query, ['id_parent' => $id_parent]);
+                    ->getList($query);
     }
 
 
@@ -106,6 +109,13 @@ Class User
         $query = 'select is_controller from users where id_user = :id_user';
 
         return (int)$this->db->getValue($query, ['id_user' => $id_user]);
+    }
+
+
+    // возвращает список потребителей
+    function getClients()
+    {
+        return $this->getList();
     }
 
 
