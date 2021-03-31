@@ -23,7 +23,7 @@
                 <select name="id_client" required class="input input_text">
                     <option value="">выберете потребителя</option>
                     <?php
-                        foreach ($list_users as $user) {
+                        foreach ($list_clients as $user) {
                             $selected = $user['id_user'] == $task_info['id_client'] ? ' selected ' : ''; ?>
                             <option value="<?=$user['id_user']?>" <?=$selected?>><?=$user["name"]?></option>
                     <?php
@@ -35,7 +35,7 @@
                 <select name="id_executor" required class="input input_text">
                     <option value="">выберете исполнителя</option>
                     <?php
-                        foreach ($list_users as $user) {
+                        foreach ($list_subordinate as $user) {
                             $selected = $user['id_user'] == $task_info['id_executor'] ? ' selected ' : ''; ?>
                             <option value="<?=$user['id_user']?>" <?=$selected?>><?=$user["name"]?></option>
                     <?php

@@ -89,7 +89,8 @@ if (isset($_POST['save'])) {
 
 // формируем список потребителей, исполнителей и контроллеров исходя из инициатора задачи
 $id_iniciator = $user->getIdIniciator($id_task);
-$list_users = $user->getListSubordinate($id_iniciator);
+$list_subordinate = $user->getListSubordinate($id_iniciator);
+$list_clients = $user->getClients();
 $list_controllers = $user->getListControllers($id_iniciator);
 
 if (count($list_controllers) == 0) {
